@@ -1,4 +1,4 @@
-FROM openio-setup-rpmbuild
+FROM openio/setup-rpmbuild
 MAINTAINER Romain Acciari <romain.acciari@openio.io>
 
 USER builder
