@@ -36,7 +36,7 @@ if [ ! -z $SOURCE ]; then
   /usr/bin/curl -Ssl $SOURCE -o $RPMBUILD_ROOT/SOURCES/$SOURCE_BASENAME || \
     ( echo "Error: Failed to download source file $SOURCE" ; exit 1 )
 else
-  /usr/bin/spectool -g -S $RPMBUILD_ROOT/SPECS/* || \
+  /usr/bin/spectool -g -S -R $RPMBUILD_ROOT/SPECS/* || \
   ( echo "Error: Failed to download source file defined in spec file." ; exit 1 )
 fi
 # Build SRPM
