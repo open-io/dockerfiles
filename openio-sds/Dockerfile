@@ -10,6 +10,7 @@ RUN yum -y install ${REPO_EPEL} \
     ${REPO_OPENIO_TESTING} \
   && yum -y update \
   && yum -y install puppet-openio-sds-profile-${PUPPET_PROFILE} ${ADDITIONAL_PKGS} \
-  && /usr/share/puppet/modules/openiosds/profiles/install.sh ${PUPPET_PROFILE}
+  && /usr/share/puppet/modules/openiosds/profiles/install.sh ${PUPPET_PROFILE} \
+  && yum clean all
 VOLUME ["/var/lib/oio"]
 CMD ["sh","-c","/usr/bin/gridinit -d /etc/gridinit.conf && bash"]
