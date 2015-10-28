@@ -4,10 +4,12 @@
 ### Variables
 ## Parameters
 SPECFILE=${SPECFILE}
+#SPECFILE=url#commit
+#SPECFILE=url?branch
+SPECFILE_TAG=${SPECFILE_TAG}
 SOURCE=${SOURCE}
 PATCH=${PATCH}
 DISTRIBUTION=${DISTRIBUTION:-epel-7-x86_64}
-GIT_COMMIT=${GIT_COMMIT}
 HTTP_PROXY=${HTTP_PROXY}
 HTTPS_PROXY=${HTTPS_PROXY}
 RPM_OPTIONS=${RPM_OPTIONS}
@@ -25,17 +27,38 @@ RM='/usr/bin/rm'
 LS='/usr/bin/ls'
 ## Initializing vars
 RPMBUILD_ROOT=~/rpmbuild
+SPECDIR=${SPECDIR:-$RPMBUILD_ROOT/SPECS}
+# Spec var
+if [ ! -z $SPECFILE ]; then
+  # Detect git commit option
+  if [ "$SPECFILE" != "${SPECFILE//*#}" ]; then
+    SPECFILE_COMMIT=${SPECFILE//*#}
+    [ ! -z "$SPECFILE_COMMIT" ] && \
+      SPECFILE=${SPECFILE//#*}
+  fi
+  # Detect git branch option
+  if [ "$SPECFILE" != "${SPECFILE//*\?}" ]; then
+    SPECFILE_BRANCH=${SPECFILE//*\?}
+    [ ! -z "$SPECFILE_BRANCH" ] && \
+      SPECFILE=${SPECFILE//\?*}
+  fi
+  SPECFILE_BASENAME=${SPECFILE##*/}
+  SPECFILE_SUFFIX=${SPECFILE//*.}
+fi
 SPECFILE_BASENAME=${SPECFILE##*/}
+# Source var
 if [ ! -z $SOURCE ]; then
   SOURCE_BASENAME=${SOURCE##*/}
   SOURCE_SUFFIX=${SOURCE//*.}
 fi
 # Exporting proxies
-[ ! -z $HTTP_PROXY ]  && export http_proxy=$HTTP_PROXY
-[ ! -z $HTTPS_PROXY ] && export https_proxy=$HTTPS_PROXY
+[ ! -z $HTTP_PROXY ]  && \
+  export http_proxy=$HTTP_PROXY
+[ ! -z $HTTPS_PROXY ] && \
+  export https_proxy=$HTTPS_PROXY
 # Using git commit
-if [ ! -z $GIT_COMMIT ]; then
-  RPM_OPTIONS="$RPM_OPTIONS --define '_with_test 1' --define 'tag $GIT_COMMIT'"
+if [ ! -z "$SPECFILE_TAG" ]; then
+  RPM_OPTIONS="$RPM_OPTIONS --define '_with_test 1' --define 'tag $SPECFILE_TAG'"
 fi
 
 ### Functions
@@ -79,7 +102,7 @@ parse_spec_setup() {
 }
 
 get_spec() {
-  eval $RPMSPEC -P $RPM_OPTIONS $RPMBUILD_ROOT/SPECS/$SPECFILE_BASENAME
+  eval $RPMSPEC -P $RPM_OPTIONS $SPECDIR/$SPECFILE_BASENAME
 }
 
 get_tag_from_spec() {
@@ -97,6 +120,60 @@ check_parameters() {
   fi
 }
 
+curl_download() {
+  $CURL -Ssl $1 -o $2 || \
+    log 'ERR' "Failed to download file '$1' to '$2' using curl."
+}
+
+is_git() {
+  $GIT ls-remote "$1" >/dev/null 2>&1
+  if [ "$?" -ne 0 ]; then
+    log 'ERR' "Unable to read git repository '$1'"
+    exit 1;
+  fi
+}
+
+git_clone() {
+  GIT_OPTIONS=''
+  while getopts "b:c:" opt; do
+    case $opt in
+      b)
+        GIT_OPTIONS="-b $OPTARG --single-branch"
+        ;;
+      c)
+        GIT_COMMIT="$OPTARG"
+        ;;
+    esac
+  done
+  shift $((OPTIND-1))
+  $GIT clone $GIT_OPTIONS $1 $2 || \
+    log 'ERR' "Failed to clone git repository '$1' to '$2'."
+  ls -ld $2/*
+  # Going to the commit
+  if [ ! -z "$GIT_COMMIT" ]; then
+    pushd $2
+    $GIT reset --hard $GIT_COMMIT || \
+      log 'ERR' "Failed to switch to commit id '$GIT_COMMIT'."
+    popd
+  fi
+}
+
+git_archive() {
+  git_clone $1 $2
+  pushd $(dirname $2)
+  $TAR cf $3 $2 || \
+    log 'ERR' "Failed to create archive '${3##*/}' from source '$2' after git clone."
+  popd
+  $RM -rf $RPMBUILD_ROOT/SOURCES/$BUILDDIR
+}
+
+# Fedora set sourcedir to specdir
+# Its much easier to manage each repositories
+set_sourcedir_to_specdir() {
+  echo "%_sourcedir $SPECDIR" \
+     >~/.rpmmacros
+}
+
 ### Preflight checks
 check_parameters
 program_exists $CURL
@@ -105,15 +182,26 @@ program_exists $MOCK
 program_exists $SPECTOOL
 program_exists $RPMSPEC
 dir_exists "$RPMBUILD_ROOT"
-dir_exists "$RPMBUILD_ROOT/SPECS"
+dir_exists "$SPECDIR"
 dir_exists "$RPMBUILD_ROOT/SOURCES"
 dir_exists "$RPMBUILD_ROOT/SRPMS"
 
 
 ### Main
+set_sourcedir_to_specdir
 # Download the specfile
-$CURL -Ssl $SPECFILE -o $RPMBUILD_ROOT/SPECS/$SPECFILE_BASENAME || \
-  log 'ERR' "Failed to download specfile '$specfile'."
+case "$SPECFILE_SUFFIX" in
+  'git')
+    [ ! -z "$SPECFILE_BRANCH" ] && \
+      GIT_OPTIONS="-b $SPECFILE_BRANCH"
+    [ ! -z "$SPECFILE_COMMIT" ] && \
+      GIT_OPTIONS="$GIT_OPTIONS -c $SPECFILE_COMMIT"
+    git_clone $GIT_OPTIONS "$SPECFILE" "$SPECDIR"
+    ;;
+  *)
+    curl_download "$SPECFILE" "$SPECDIR/$SPECFILE_BASENAME"
+    ;;
+esac
 
 # Download the source
 if [ ! -z "$SOURCE" ]; then
@@ -130,33 +218,28 @@ if [ ! -z "$SOURCE" ]; then
       BUILDDIR=$(parse_spec_setup $(get_spec | $AWK '/^%setup/')
       [ -z "$BUILDDIR" -o $? -ne 0 ] && \
         log 'ERR' "Failed to retrieve source build directory from specfile '$SPECFILE'."
-      $GIT clone $SOURCE $RPMBUILD_ROOT/SOURCES/$BUILDDIR || \
-        log 'ERR' "Failed to clone git repository '$SOURCE'."
-      pushd $RPMBUILD_ROOT/SOURCES
-      $TAR cf ${SOURCE0##*/} $BUILDDIR || \
-        log 'ERR' "Failed to create archive '${SOURCE0##*/}' from source '$BUILDDIR' after git clone."
-      popd
-      $RM -rf $RPMBUILD_ROOT/SOURCES/$BUILDDIR
+      ########
+      git_archive "$SOURCE" "$RPMBUILD_ROOT/SOURCES/$BUILDDIR" "$SOURCE0"
+      ########
       ;;
     *)
-      $CURL -Ssl $SOURCE -o $RPMBUILD_ROOT/SOURCES/$SOURCE_BASENAME || \
-        log 'ERR' "Failed to download the source file using curl '$SOURCE'."
+      curl_download "$SOURCE" "$RPMBUILD_ROOT/SOURCES/$SOURCE_BASENAME"
       ;;
   esac
 fi
 # Check and download files using spectool
-eval $SPECTOOL -g -S -R $RPM_OPTIONS $RPMBUILD_ROOT/SPECS/$SPECFILE_BASENAME || \
+eval $SPECTOOL -g -S -R $RPM_OPTIONS $SPECDIR/*.spec || \
   log 'ERR' "Failed to download the source file using spectool '$SOURCE'."
 
 # Create the SRPM
-eval $RPMBUILD -bs --nodeps $RPM_OPTIONS $RPMBUILD_ROOT/SPECS/* || \
+eval $RPMBUILD -bs --nodeps $RPM_OPTIONS $SPECDIR/*.spec || \
   log 'ERR' "Failed to create SRPM."
 
 # Build the package
-eval $MOCK -r $DISTRIBUTION $RPM_OPTIONS --rebuild $RPMBUILD_ROOT/SRPMS/* || \
+eval $MOCK -r $DISTRIBUTION $RPM_OPTIONS --rebuild $RPMBUILD_ROOT/SRPMS/*.src.rpm || \
   log 'ERR' "Failed to create packages."
 
-# Upload the resulting packages
+# List the resulting packages
 $LS -ld /var/lib/mock/*/result/*.rpm
 
 exit 0
