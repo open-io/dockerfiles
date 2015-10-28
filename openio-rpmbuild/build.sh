@@ -22,7 +22,7 @@ AWK='/usr/bin/awk'
 CUT='/usr/bin/cut'
 TAR='/usr/bin/tar'
 RM='/usr/bin/rm'
-LS=-'/usr/bin/ls'
+LS='/usr/bin/ls'
 ## Initializing vars
 RPMBUILD_ROOT=~/rpmbuild
 SPECFILE_BASENAME=${SPECFILE##*/}
