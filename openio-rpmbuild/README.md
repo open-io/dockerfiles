@@ -19,7 +19,7 @@ The build script options are available in the [source code](https://github.com/o
 
 ## Features
 
-# Use cache
+### Use cache
 This image relies on Mock that uses a YUM cache to build package faster. As you create a new container from scratch each time you want to build a package, the cache could not be fed.
 This image allows you to bind a local directory to keep the cache fetched by Mock in `/var/cache/mock` through your packages build.
 
@@ -33,7 +33,7 @@ Create a local directory:
 # docker run -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true --rm -v local/cache/mock:/var/cache/mock openio/rpmbuild
 ```
 
-# Access the result
+### Access the result
 You might want to get your packages, the logs or the chroot at the end of the build, you can mount `/var/lib/mock` on your host to access this informations:
 
 Create a local directory:
