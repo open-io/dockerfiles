@@ -19,6 +19,19 @@ The build script options are available in the [source code](https://github.com/o
 
 ## Features
 
+### specfile from GIT
+If your specfile and your sources are versionned like in Fedora's repository, you can set the SPECFILE parameter to a GIT repository and use `#commit` or `branch` at the end, for example:  
+
+```console
+docker run -e DISTRIBUTION=fedora-22-x86_64  -e SPECFILE=http://pkgs.fedoraproject.org/git/bash.git#469c21de51421a30eb99aad8a02148043fcdccce --privileged=true --rm -v ~/docker/local/cache/mock:/var/cache/mock -v ~/docker/local/lib/mock:/var/lib/mock openio/rpmbuild
+```
+
+that give the same as:  
+
+```console
+docker run -e DISTRIBUTION=fedora-22-x86_64  -e SPECFILE=http://pkgs.fedoraproject.org/git/bash.git?f22 --privileged=true --rm -v ~/docker/local/cache/mock:/var/cache/mock -v ~/docker/local/lib/mock:/var/lib/mock openio/rpmbuild
+```
+
 ### Use cache
 This image relies on Mock that uses a YUM cache to build package faster. As you create a new container from scratch each time you want to build a package, the cache could not be fed.
 This image allows you to bind a local directory to keep the cache fetched by Mock in `/var/cache/mock` through your packages build.
