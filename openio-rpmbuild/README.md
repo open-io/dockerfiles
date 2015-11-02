@@ -39,11 +39,15 @@ This image allows you to bind a local directory to keep the cache fetched by Moc
 Create a local directory:
 
 ```console
-# mkdir -pv local/cache/mock
+# docker run -ti -v /var/cache/mock --name rpmbuild-data-container alpine true
 ```
 
 ```console
-# docker run -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true --rm -v local/cache/mock:/var/cache/mock openio/rpmbuild
+# docker run -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true --rm --volumes-from rpmbuild-data-container  openio/rpmbuild
+```
+
+```console
+# docker run -ti --rm --volumes-from rpmbuild-data-container alpine sh
 ```
 
 ### Access the result
@@ -52,7 +56,7 @@ You might want to get your packages, the logs or the chroot at the end of the bu
 Create a local directory:
 
 ```console
-# mkdir -pv local/lib/mock
+# mkdir -pv $(pwd)/local/lib/mock
 ```
 
 ```console
