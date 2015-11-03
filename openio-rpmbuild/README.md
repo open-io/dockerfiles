@@ -15,7 +15,7 @@ Default distribution is *epel-7-x86_64*, get the full list in the [Mock source](
 ```
 The container should run in [*privileged mode*](http://blog.docker.com/2013/09/docker-can-now-run-within-docker/).
 
-The build script options are available in the [source code](https://github.com/open-io/dockerfiles/blob/master/openio-rpmbuild/build.sh).
+The build script options are available in the [source code](https://github.com/open-io/dockerfiles/blob/master/openio-rpmbuild/build.py).
 
 ## Features
 
