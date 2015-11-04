@@ -174,6 +174,8 @@ def download_sources():
   if sources:
     sources_list = sources.split(' ')
     for i, url in enumerate(sources_list):
+      if not url:
+        continue
       urlparsed = urlparse.urlparse(url)
       query = urlparse.parse_qs(urlparsed.query)
       stripped_url = url_strip_query_fragment(url)
