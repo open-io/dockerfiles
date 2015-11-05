@@ -81,6 +81,13 @@ Create a local directory:
 # docker run -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true -v local/lib/mock:/var/lib/mock --rm openio/rpmbuild
 ```
 
+### Upload resulting packages
+You can upload the resulting packages using SCP:  
+
+```console
+# docker run -e UPLOAD_RESULT="scp://host/remote_path/?port=22&username=user&password=passwd" -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true -v local/lib/mock:/var/lib/mock --rm openio/rpmbuild
+```
+
 # License
 
 The included script is provided under [Apache License v2](http://www.apache.org/licenses/LICENSE-2.0).

@@ -9,23 +9,26 @@ import requests
 import tarfile
 import shutil
 import rpm
+import paramiko
+from scp import SCPClient
 
 ### Variables
 # Static
 homedir = os.path.expanduser('~')
 rpmbuilddir = homedir+'/rpmbuild'
 specdir = rpmbuilddir+'/SPECS'
+sourcedir = specdir
 srpmsdir = rpmbuilddir+'/SRPMS'
 rpmmacros_path = homedir+'/.rpmmacros'
 tmpdir = '/tmp'
 # Set _sourcedir to _specdir
 # Overridable vars
-sourcedir = specdir
 specfile = os.environ.get('SPECFILE')
 sources = os.environ.get('SOURCES','')
 rpm_options = os.environ.get('RPM_OPTIONS','')
 distribution = os.environ.get('DISTRIBUTION','epel-7-x86_64')
 specfile_tag = os.environ.get('SPECFILE_TAG')
+upload_result = os.environ.get('UPLOAD_RESULT') # scp://host/remote_path/?port=22&username=user&password=passwd
 
 ### Functions
 def usage():
@@ -102,14 +105,14 @@ def git_clone(url,destdir,branch='master',commit=None,clean=True,archive=None,ar
     wkdir = tmpdir+'/'+os.path.basename(urlparsed.path)
     repo = Repo.clone_from(url,wkdir,branch=branch)
   except Exception, e:
-    log('===== '+str(e),'ERROR')
+    log('Exception :'+str(e),'ERROR')
     log('Failed to clone git repository '+url,'ERROR')
   if commit:
     try:
       log('Resetting git repository to commid id '+commit)
       repo.head.reset(commit=commit,index=True)
     except Exception, e:
-      log('===== '+str(e),'ERROR')
+      log('Exception :'+str(e),'ERROR')
       log('Failed to reset git repository to commit id '+commit)
   if clean:
     clean_git_repo(wkdir)
@@ -122,7 +125,7 @@ def git_clone(url,destdir,branch='master',commit=None,clean=True,archive=None,ar
       try:
         shutil.move(file,destdir)
       except Exception, e:
-        log('===== '+str(e),'ERROR')
+        log('Exception :'+str(e),'ERROR')
         log('Failed to copy file '+file+' to '+destdir,'ERROR')
 
 def clean_git_repo(directory):
@@ -142,7 +145,7 @@ def create_archive(archive,source,arcname=None,clean=True):
     with tarfile.open(archive,'w:'+compression) as tar:
       tar.add(source,arcname=arcname)
   except Exception, e:
-    log('===== '+str(e),'ERROR')
+    log('Exception :'+str(e),'ERROR')
     log('Failed to create tar file '+archive+' from '+source,'ERROR')
   if clean:
     try:
@@ -230,7 +233,45 @@ def mock(distribution,rpm_options,srpmsdir):
     log('ERROR','Failed to build packages.')
 
 def list_result():
-  print glob.glob('/var/lib/mock/*/result/*.rpm')
+  log('Listing generated files:')
+  for path in glob.glob('/var/lib/mock/*/result/*.rpm'):
+    log('- '+path)
+
+def upload_scp(url):
+  log('Uploading files using SCP')
+  urlparsed = urlparse.urlparse(url)
+  if urlparsed.scheme != 'scp':
+    log('Cannot upload files using scp since URI seems not to be a scp protocol','ERROR')
+  host = urlparsed.netloc
+  rpath = urlparsed.path.lstrip('/')
+  query = urlparse.parse_qs(urlparsed.query)
+  if query.get('username'):
+    user = query['username'][0]
+  else:
+    user = None
+  if query.get('password'):
+    passwd = query['password'][0]
+  else:
+    passwd = None
+  if query.get('port'):
+    port = query['port'][0]
+  else:
+    port = 22
+  try:
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.load_system_host_keys()
+    ssh.connect(hostname=host,port=port,username=user,password=passwd)
+    scp = SCPClient(ssh.get_transport())
+  except Exception, e:
+    log('Failed to create connection to '+host)
+    log('Exception :'+str(e),'ERROR')
+  for lpath in glob.glob('/var/lib/mock/*/result/*.rpm'):
+    try:
+      scp.put(lpath,rpath)
+    except Exception, e:
+      log('Exception :'+str(e),'ERROR')
+      log('Failed to upload file '+lpath+' to '+host+':'+rpath)
 
 
 ### Main
@@ -250,3 +291,5 @@ rpmbuild_bs(rpm_options,get_specfile())
 mock(distribution,rpm_options,srpmsdir)
 # List the resulting packages
 list_result()
+if upload_result:
+  upload_scp(upload_result)
