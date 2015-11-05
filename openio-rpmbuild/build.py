@@ -56,11 +56,11 @@ def log(msg,level='INFO'):
   except Exception, e:
     log_error('Failed to log msg '+msg)
 
-def set_sourcedir(rpmmacros_path):
+def set_sourcedir(srcdir=sourcedir,macros_path=rpmmacros_path):
   try:
-    log('Setting %_sourcedir to '+sourcedir)
-    rpmmacros = open(rpmmacros_path,'w')
-    rpmmacros.write('%_sourcedir '+sourcedir+'\n')
+    log('Setting %_sourcedir to '+srcdir)
+    rpmmacros = open(macros_path,'w')
+    rpmmacros.write('%_sourcedir '+srcdir+'\n')
     rpmmacros.close()
   except Exception, e:
     log('Failed to set macro %_sourcedir','ERROR')
@@ -117,6 +117,13 @@ def git_clone(url,destdir,branch='master',commit=None,clean=True,archive=None,ar
     if not arcname:
       arcname = splitext(archive)[0]
     create_archive(destdir+'/'+archive,wkdir,arcname)
+  else:
+    for file in glob.glob(wkdir+'/*'):
+      try:
+        shutil.move(file,destdir)
+      except Exception, e:
+        log('===== '+str(e),'ERROR')
+        log('Failed to copy file '+file+' to '+destdir,'ERROR')
 
 def clean_git_repo(directory):
   try:
@@ -143,17 +150,26 @@ def create_archive(archive,source,arcname=None,clean=True):
     except Exception, e:
       log('Failed to remove directory '+source)
 
+def set_specdir(spcdir=''):
+  global specdir
+  if spcdir:
+    spcdir = '/'+spcdir
+  new_specdir = rpmbuilddir+'/SPECS'+spcdir
+  if specdir == sourcedir:
+    set_sourcedir(new_specdir)
+  log('Setting specfile workdir to '+new_specdir)
+  specdir = new_specdir
+
 def download_specfile(url,directory):
   urlparsed = urlparse.urlparse(url)
   query = urlparse.parse_qs(urlparsed.query)
   stripped_url = url_strip_query_fragment(url)
   if query.get('branch'):
     branch = query['branch'][0]
+  else:
+    branch = 'master'
   if query.get('specdir'):
-    global specdir
-    new_specdir = specdir+'/'+query['specdir'][0]
-    log('Setting specfile workdir to '+new_specdir)
-    specdir = new_specdir
+    set_specdir(query['specdir'][0])
   if is_git(stripped_url):
     git_clone(stripped_url,directory,branch)
   else:
@@ -219,7 +235,8 @@ def list_result():
 
 ### Main
 set_rpm_options()
-set_sourcedir(rpmmacros_path)
+set_specdir()
+set_sourcedir()
 # Download the specfile if not already present
 if not get_specfile():
   download_specfile(specfile,specdir)
