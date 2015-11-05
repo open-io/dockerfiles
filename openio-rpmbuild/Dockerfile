@@ -2,7 +2,7 @@ FROM fedora:22
 
 MAINTAINER Romain Acciari <romain.acciari@openio.io>
 
-RUN dnf -y install mock rpmdevtools git python-requests GitPython
+RUN dnf -y install mock rpmdevtools git python-requests GitPython python-boto python-paramiko python-scp
 
 # /var/lib/mock allows you to access build chroot and packaging result
 # /var/cache/mock allows you to use a shared cache on your host
