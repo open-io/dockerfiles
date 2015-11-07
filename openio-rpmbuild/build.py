@@ -20,6 +20,7 @@ specdir = rpmbuilddir+'/SPECS'
 sourcedir = specdir
 srpmsdir = rpmbuilddir+'/SRPMS'
 rpmmacros_path = homedir+'/.rpmmacros'
+packagecloud_config = homedir+'/.packagecloud'
 tmpdir = '/tmp'
 # Set _sourcedir to _specdir
 # Overridable vars
@@ -28,7 +29,7 @@ sources = os.environ.get('SOURCES','')
 rpm_options = os.environ.get('RPM_OPTIONS','')
 distribution = os.environ.get('DISTRIBUTION','epel-7-x86_64')
 specfile_tag = os.environ.get('SPECFILE_TAG')
-upload_result = os.environ.get('UPLOAD_RESULT') # scp://host/remote_path/?port=22&username=user&password=passwd
+upload_result = os.environ.get('UPLOAD_RESULT')
 
 ### Functions
 def usage():
@@ -220,24 +221,34 @@ def download_sources():
 def spectool(rpm_options,specfile):
   ret = os.system('/usr/bin/spectool -g -S -R '+rpm_options+' '+specfile)
   if ret != 0:
-    log('ERROR','Failed to get source files.')
+    log('Failed to get source files.','ERROR')
 
 def rpmbuild_bs(rpm_options,specfile):
   ret = os.system('/usr/bin/rpmbuild -bs --nodeps '+rpm_options+' '+specfile)
   if ret != 0:
-    log('ERROR','Failed to create SRPM package.')
+    log('Failed to create SRPM package.','ERROR')
 
 def mock(distribution,rpm_options,srpmsdir):
   ret = os.system('/usr/bin/mock -r '+distribution+' '+rpm_options+' --rebuild '+srpmsdir+'/*.src.rpm')
   if ret != 0:
-    log('ERROR','Failed to build packages.')
+    log('Failed to build packages.','ERROR')
 
 def list_result():
   log('Listing generated files:')
   for path in glob.glob('/var/lib/mock/*/result/*.rpm'):
     log('- '+path)
 
+def upload(url):
+  urlparsed = urlparse.urlparse(url)
+  if urlparsed.scheme == 'scp':
+    return upload_scp(url)
+  if urlparsed.scheme == 'packagecloud':
+    return upload_pc(url)
+  log('URL scheme '+urlparsed.scheme+' not supported.')
+  return False
+
 def upload_scp(url):
+  # scp://host/remote_path/?port=22&username=user&password=passwd || packagecloud://user/
   log('Uploading files using SCP')
   urlparsed = urlparse.urlparse(url)
   if urlparsed.scheme != 'scp':
@@ -273,6 +284,61 @@ def upload_scp(url):
       log('Exception :'+str(e),'ERROR')
       log('Failed to upload file '+lpath+' to '+host+':'+rpath)
 
+def pc_config(token):
+  try:
+    log('Configure Package Cloud token')
+    pc_config = open(packagecloud_config,'w')
+    pc_config.write(token)
+    pc_config.close()
+  except Exception, e:
+    log('Failed to set token  in '+packagecloud_config,'ERROR')
+    return False
+  return True
+
+def upload_pc(url):
+  # packagecloud://user/repo/distro/distro_server?token='{"url":"https://packagecloud.io","token":"763ba46554b1a31e1c9ab7a148a74440d43a22a7eb6112a9"}'
+  urlparsed = urlparse.urlparse(url)
+  query = urlparse.parse_qs(urlparsed.query)
+  stripped_url = url_strip_query_fragment(url)
+  splitted_path = (urlparsed.path.strip('/')).split('/')
+  user = urlparsed.netloc
+  if len(splitted_path) == 3:
+    repo,distro,distro_version = splitted_path
+  if len(splitted_path) == 1:
+    repo = splitted_path[0]
+    distro,distro_version = mock2pc_dist()
+  if query.get('token'):
+    token = query['token'][0]
+  if not 'token' in locals():
+    log('Package Cloud upload required a token to push packages')
+    return False
+  if not pc_config(token):
+    return False
+  log('Uploading files to Package Cloud '+user+'/'+repo+'/'+distro+'/'+distro_version)
+  for lpath in glob.glob('/var/lib/mock/*/result/*.rpm'):
+    try:
+      log('Uploading file '+lpath)
+      ret = os.system('LANG=en_US.UTF-8 /usr/local/bin/package_cloud push '+user+'/'+repo+'/'+distro+'/'+distro_version+' '+lpath)
+      if ret != 0:
+        log('Failed to upload package '+lpath+' to Package Cloud to '+user+'/'+repo+'/'+distro+'/'+distro_version,'ERROR')
+    except Exception, e:
+      log('Exception :'+str(e),'ERROR')
+      log('Failed to push file '+lpath+' to Package Cloud '+user+'/'+repo+'/'+distro+'/'+distro_version)
+  log('Upload to Package Cloud ended successfully.')
+
+def mock2pc_dist():
+  global distribution
+  splitted_distribution = distribution.split('-')
+  if len(splitted_distribution) == 4:
+    dist,distvers,arch,repo = splitted_distribution
+  else:
+    dist,distvers,arch = splitted_distribution
+  if dist == 'epel':
+    distro = 'el'
+  else:
+    distro = dist
+  return distro,distvers
+
 
 ### Main
 set_rpm_options()
@@ -292,4 +358,4 @@ mock(distribution,rpm_options,srpmsdir)
 # List the resulting packages
 list_result()
 if upload_result:
-  upload_scp(upload_result)
+  upload(upload_result)
