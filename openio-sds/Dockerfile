@@ -1,13 +1,25 @@
 FROM centos:7
 MAINTAINER "Romain Acciari" <romain.acciari@openio.io>
-ENV REPO_EPEL http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
-ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/centos/7/common/x86_64/openio-sds-release-0-2.el7.noarch.rpm
-ENV REPO_OPENIO_TESTING http://mirror.openio.io/pub/repo/stable/openio/sds/centos/7/common/x86_64/openio-sds-testing-release-0-1.el7.noarch.rpm
+
+ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/16.04/el/openio-sds-release-16.04-1.el.noarch.rpm
 ENV PUPPET_PROFILE docker
 ENV ADDITIONAL_PKGS python-oiopy
-RUN yum -y install ${REPO_EPEL} \
-    ${REPO_OPENIO} \
-    ${REPO_OPENIO_TESTING} \
+
+# Enable systemd
+ENV container docker
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+  rm -f /lib/systemd/system/multi-user.target.wants/*;\
+  rm -f /etc/systemd/system/*.wants/*;\
+  rm -f /lib/systemd/system/local-fs.target.wants/*; \
+  rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+  rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+  rm -f /lib/systemd/system/basic.target.wants/*;\
+  rm -f /lib/systemd/system/anaconda.target.wants/*;
+VOLUME [ "/sys/fs/cgroup" ]
+
+# Install and configure OpenIO
+RUN yum clean all \
+  && yum -y install ${REPO_OPENIO} \
   && yum -y update \
   && yum -y install puppet-openio-sds-profile-${PUPPET_PROFILE} ${ADDITIONAL_PKGS} \
   && /usr/share/puppet/modules/openiosds/profiles/install.sh ${PUPPET_PROFILE} \
