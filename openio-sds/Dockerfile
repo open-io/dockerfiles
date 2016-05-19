@@ -19,10 +19,12 @@ VOLUME [ "/sys/fs/cgroup" ]
 
 # Install and configure OpenIO
 RUN yum clean all \
-  && yum -y install ${REPO_OPENIO} \
-  && yum -y update \
-  && yum -y install puppet-openio-sds-profile-${PUPPET_PROFILE} ${ADDITIONAL_PKGS} \
-  && /usr/share/puppet/modules/openiosds/profiles/install.sh ${PUPPET_PROFILE} \
+  && yum -y --disableplugin=fastestmirror install ${REPO_OPENIO} \
+  && yum -y --disableplugin=fastestmirror update \
+  && yum -y --disableplugin=fastestmirror install puppet-openio-sds-profile-${PUPPET_PROFILE} ${ADDITIONAL_PKGS}
+RUN /usr/share/puppet/modules/openiosds/profiles/install.sh ${PUPPET_PROFILE} \
   && yum clean all
 VOLUME ["/var/lib/oio"]
-CMD ["sh","-c","/usr/bin/gridinit -d /etc/gridinit.conf && bash"]
+ADD openio-docker-init.sh /
+CMD ["sh","-c","/openio-docker-init.sh"]
+#CMD ["sh","-c","/usr/bin/gridinit -d /etc/gridinit.conf && bash"]
