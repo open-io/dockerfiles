@@ -1,4 +1,4 @@
-# openio/openio-sds Dockerfile
+# openio/sds Dockerfile
 
 This image provides an easy way to run an OPENIO namespace.  
 It deploys and configure a simple non-replicated namespace in a single container.
