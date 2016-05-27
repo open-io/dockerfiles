@@ -12,7 +12,7 @@ OpenIO SDS depends on IPs, meaning that you can't change service IPs after they 
 By default, start a simple namespace listening on 127.0.0.1 inside the container.
 
 ```console
-docker run -ti --tty openio/openio-sds
+docker run -ti --tty openio/sds
 ```
 
 ### Using host network interface
@@ -21,12 +21,12 @@ You can start an instance using Docker host mode networking, it allows you to ac
 
 Setting the interface:
 ```console
-docker run -ti --tty -e OPENIO_IFDEV=enp0s8 --net=host openio/openio-sds
+docker run -ti --tty -e OPENIO_IFDEV=enp0s8 --net=host openio/sds
 ```
 
 Specifying the IP:
 ```console
-docker run -ti --tty -e OPENIO_IPADDR=192.168.56.101 --net=host openio/openio-sds
+docker run -ti --tty -e OPENIO_IPADDR=192.168.56.101 --net=host openio/sds
 ```
 
 ## Documentation
