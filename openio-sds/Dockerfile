@@ -1,9 +1,9 @@
 FROM centos:7
 MAINTAINER "Romain Acciari" <romain.acciari@openio.io>
 
-ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/16.04/el/openio-sds-release-16.04-1.el.noarch.rpm
+ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/16.10/el/openio-sds-release-16.10-1.el.noarch.rpm
 ENV PUPPET_PROFILE docker
-ENV ADDITIONAL_PKGS python-oiopy
+#ENV ADDITIONAL_PKGS 
 
 # Enable systemd
 ENV container docker
