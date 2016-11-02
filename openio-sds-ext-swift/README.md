@@ -12,7 +12,7 @@ This container requires you to run the [OpenIO SDS Docker image] (https://hub.do
 Start the image providing the openio/sds container IP address:
 
 ```console
-docker run -ti --tty -e OIOPROXY_IPADDR=192.168.56.101 openio/openio-sds-ext-swift
+docker run -ti --tty -e OIOPROXY_IPADDR=192.168.56.101 openio/sds-ext-swift
 ```
 
 ### Using host network interface
@@ -22,13 +22,13 @@ You can start an instance using Docker host mode networking, it allows you to ac
 Setting the interface:
 
 ```console
-docker run -ti --tty --net=host -e OIOPROXY_IPADDR=192.168.56.101 -e OPENIO_IFDEV=enp0s8 openio/openio-sds-ext-swift
+docker run -ti --tty --net=host -e OIOPROXY_IPADDR=192.168.56.101 -e OPENIO_IFDEV=enp0s8 openio/sds-ext-swift
 ```
 
 Specifying the IP:
 
 ```console
-docker run -ti --tty --net=host -e OIOPROXY_IPADDR=192.168.56.101 -e OPENIO_IPADDR=192.168.56.101 openio/openio-sds-ext-swift
+docker run -ti --tty --net=host -e OIOPROXY_IPADDR=192.168.56.101 -e OPENIO_IPADDR=192.168.56.101 openio/sds-ext-swift
 ```
 
 ## OpenStack Swift & AWS S3
