@@ -1,9 +1,10 @@
 FROM centos:7
 MAINTAINER "Romain Acciari" <romain.acciari@openio.io>
 
-ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/16.10/el/openio-sds-release-16.10-1.el.noarch.rpm
+ENV OIOSDS_RELEASE 16.10
+ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/${OIOSDS_RELEASE}/el/openio-sds-release-${OIOSDS_RELEASE}-1.el.noarch.rpm
 ENV PUPPET_PROFILE docker
-#ENV ADDITIONAL_PKGS 
+#ENV ADDITIONAL_PKGS
 
 # Enable systemd
 ENV container docker
@@ -21,10 +22,9 @@ VOLUME [ "/sys/fs/cgroup" ]
 RUN yum clean all \
   && yum -y --disableplugin=fastestmirror install ${REPO_OPENIO} \
   && yum -y --disableplugin=fastestmirror update \
-  && yum -y --disableplugin=fastestmirror install puppet-openio-sds-profile-${PUPPET_PROFILE} ${ADDITIONAL_PKGS}
+  && yum -y --disableplugin=fastestmirror install puppet-openio-sds-profile ${ADDITIONAL_PKGS}
 RUN /usr/share/puppet/modules/openiosds/profiles/install.sh ${PUPPET_PROFILE} \
   && yum clean all
 VOLUME ["/var/lib/oio"]
 ADD openio-docker-init.sh /
 CMD ["sh","-c","/openio-docker-init.sh"]
-#CMD ["sh","-c","/usr/bin/gridinit -d /etc/gridinit.conf && bash"]
