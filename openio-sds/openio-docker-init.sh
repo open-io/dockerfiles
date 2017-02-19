@@ -1,4 +1,5 @@
 #!/bin/bash
+#set -x
 
 # Initialize OpenIO cluster
 function initcluster(){
@@ -12,7 +13,7 @@ function initcluster(){
   IGNOREDISTANCE=on
   TIMEOUT=20
 
-  echo "> Waiting for the meta1 to register ..."
+  echo "> Waiting for the services to start ..."
   etime_start=$(date +"%s")
   etime_end=$(($etime_start + $TIMEOUT))
   nbmeta1=0
@@ -20,22 +21,34 @@ function initcluster(){
   do
     sleep 2
     # Count registered meta1
-    nbmeta1=$(/usr/bin/oio-cluster -r $NS | grep -c meta1)
+    nbmeta1=$(/usr/bin/openio --oio-ns=$NS cluster list meta1 -f value -c Id|wc -l)
   done
   if [ $nbmeta1 -ne $NBREPLICAS ]; then
     echo "Error: Install script did not found $NBREPLICAS meta1 services registered. Return: $nbmeta1"
     exit 1
   fi
+  etime_start=$(date +"%s")
+  etime_end=$(($etime_start + $TIMEOUT))
+  score=0
+  while [ $(date +"%s") -le $etime_end -a $score -eq 0 ]
+  do
+    /usr/bin/openio --oio-ns=$NS cluster unlockall >/dev/null 2>&1
+    sleep 5
+    score=$(/usr/bin/openio --oio-ns=$NS cluster list meta1 -f value -c Score || echo 0)
+  done
+  if [ $score -eq 0 ]; then
+    echo "Error: Unlocking scores failed. Unable to bootstrap namespace. Return: Meta1 score = $score"
+    exit 1
+  fi
 
   # Initialize meta1 with 3 replicas on the same server
-  echo "> Loading meta0 ..."
-  /usr/bin/oio-meta0-init -O NbReplicas=$NBREPLICAS -O IgnoreDistance=$IGNOREDISTANCE $NS || \
-    (echo "Error: Meta0 init failed. Aborting." ; exit 1)
+  echo "> Bootstrapping directory ..."
+  /usr/bin/openio --oio-ns=$NS directory bootstrap --replicas $NBREPLICAS || \
+    (echo "Error: Directory bootstrap failed. Aborting." ; exit 1)
 
   # Restarting meta0 and meta1
   echo "> Restarting directory services ..."
-  /usr/bin/gridinit_cmd restart @meta0
-  /usr/bin/gridinit_cmd restart @meta1
+  /usr/bin/gridinit_cmd restart @meta0 @meta1
 
 }
 
@@ -74,7 +87,7 @@ pkill -0 -F /run/gridinit/gridinit.pid >/dev/null 2>&1 || \
 
 echo "> Unlocking scores ..."
 /usr/bin/sleep 5 && \
-  /usr/bin/oio-cluster -r OPENIO | /usr/bin/xargs --no-run-if-empty -n1 /usr/bin/oio-cluster --unlock-score -S >/dev/null 2>&1 && \
+  /usr/bin/openio --oio-ns=$NS cluster unlockall >/dev/null 2>&1 && \
   /usr/bin/sleep 5 && \
-  /usr/bin/oio-cluster -r OPENIO | /usr/bin/xargs --no-run-if-empty -n1 /usr/bin/oio-cluster --unlock-score -S >/dev/null 2>&1 && \
+  /usr/bin/openio --oio-ns=$NS cluster unlockall >/dev/null 2>&1 && \
   bash
