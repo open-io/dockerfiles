@@ -44,5 +44,5 @@ Bind the Openstack Swift/Swift3 proxy port to you host:
 
 ## Documentation
 
-For a documentation to use the OpenIO Command Line Interface, please refer to this [documentation] (https://github.com/open-io/oiopy/blob/master/docs/cli.md).  
+For a documentation to use the OpenIO Command Line Interface, please refer to this [documentation](http://docs.openio.io/cli-reference/).
 
