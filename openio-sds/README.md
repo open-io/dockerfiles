@@ -37,6 +37,11 @@ Change the Openstack Swift default credentials:
 # docker run -ti --tty -e OPENIO_IFDEV=enp0s8 --net=host -e SWIFT_CREDENTIALS="myproject:myuser:mypassord:.admin" openio/sds
 ```
 
+Bind the Openstack Swift/Swift3 proxy port to you host:  
+```console
+# docker run -ti --tty -p 192.168.56.101:6007:6007 openio/sds
+```
+
 ## Documentation
 
 For a documentation to use the OpenIO Command Line Interface, please refer to this [documentation] (https://github.com/open-io/oiopy/blob/master/docs/cli.md).  
