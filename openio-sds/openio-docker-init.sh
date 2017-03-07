@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #set -x
 
 # Initialize OpenIO cluster
@@ -52,6 +52,45 @@ function initcluster(){
 
 }
 
+function unlock(){
+  echo "> Unlocking scores ..."
+  etime_start=$(date +"%s")
+  etime_end=$(($etime_start + $TIMEOUT))
+  nbscore=1
+  while [ $(date +"%s") -le $etime_end -a $nbscore -gt 0 ]
+  do
+    /usr/bin/openio --oio-ns=$NS cluster unlockall >/dev/null 2>&1
+    sleep 5
+    nbscore=$(/usr/bin/openio --oio-ns=$NS cluster list -f value -c Score|grep -c -e '^0$')
+  done
+  if [ $nbscore -gt 0 ]; then
+    echo "Error: Unlocking scores failed."
+    exit 1
+  fi
+}
+
+function gridinit_start(){
+  pkill -0 -F /run/gridinit/gridinit.pid >/dev/null 2>&1 || \
+    /usr/bin/gridinit -d /etc/gridinit.conf >/dev/null 2>&1
+}
+
+function update_swift_credentials(){
+  if [ ! -z "$SWIFT_CREDENTIALS" ]; then
+    # Remove default credentials
+    sed -i -e '/user_demo_demo=DEMO_PASS .admin/d' \
+      /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
+    # Add credentials to the Swift proxy configuration
+    IFS=',' read -r -a swiftcreds <<< "$SWIFT_CREDENTIALS"
+    for creds in "${swiftcreds[@]}"
+    do
+      echo "Adding Openstack Swift credentials $creds"
+      IFS=':' read -r -a cred <<< "$creds"
+      sed -i -e "s@^use = egg:swift\#tempauth\$@use = egg:swift\#tempauth\nuser_${cred[0]}_${cred[1]}=${cred[2]} ${cred[3]}@" \
+        /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
+    done
+  fi
+}
+
 
 ### Main
 
@@ -74,6 +113,9 @@ if [ ! -f /etc/oio/sds/firstboot ]; then
     /usr/bin/find /etc/oio /etc/gridinit.d -type f -print0 | xargs --no-run-if-empty -0 sed -i "s/127.0.0.1/${IPADDR}/g"
   fi
 
+  # Update Swift credentials
+  update_swift_credentials
+
   # Deploy OpenIO
   initcluster
 
@@ -82,12 +124,9 @@ if [ ! -f /etc/oio/sds/firstboot ]; then
 fi
 
 # Start gridinit if not already started
-pkill -0 -F /run/gridinit/gridinit.pid >/dev/null 2>&1 || \
-  /usr/bin/gridinit -d /etc/gridinit.conf >/dev/null 2>&1
+gridinit_start
 
-echo "> Unlocking scores ..."
-/usr/bin/sleep 5 && \
-  /usr/bin/openio --oio-ns=$NS cluster unlockall >/dev/null 2>&1 && \
-  /usr/bin/sleep 5 && \
-  /usr/bin/openio --oio-ns=$NS cluster unlockall >/dev/null 2>&1 && \
-  bash
+unlock
+
+# Give a prompt
+/bin/bash

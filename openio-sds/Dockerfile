@@ -3,7 +3,6 @@ MAINTAINER "Romain Acciari" <romain.acciari@openio.io>
 
 ENV OIOSDS_RELEASE 16.10
 ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/${OIOSDS_RELEASE}/el/openio-sds-release-${OIOSDS_RELEASE}-1.el.noarch.rpm
-#ENV ADDITIONAL_PKGS
 ENV PUPPET_PROFILE docker
 
 # Install and configure OpenIO
@@ -16,4 +15,4 @@ RUN yum clean all \
 VOLUME ["/var/lib/oio"]
 ADD openio-docker-init.sh /
 EXPOSE 6007
-CMD ["sh","-c","/openio-docker-init.sh"]
+CMD ["/openio-docker-init.sh"]
