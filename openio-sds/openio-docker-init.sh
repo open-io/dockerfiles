@@ -1,17 +1,17 @@
 #!/bin/sh
 #set -x
 
+# Default configuration
+NS='OPENIO'
+NBREPLICAS=1
+IGNOREDISTANCE='on'
+TIMEOUT=20
+
 # Initialize OpenIO cluster
 function initcluster(){
   echo "# Initializing the OpenIO cluster"
   echo "> Starting services"
   /usr/bin/gridinit -d /etc/gridinit.conf >/dev/null 2>&1
-
-  # Default configuration
-  NS=OPENIO
-  NBREPLICAS=1
-  IGNOREDISTANCE=on
-  TIMEOUT=20
 
   echo "> Waiting for the services to start ..."
   etime_start=$(date +"%s")
