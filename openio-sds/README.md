@@ -25,7 +25,7 @@ You can start an instance using Docker host mode networking, it allows you to ac
 
 Setting the interface:
 ```console
-# docker run -ti --tty -e OPENIO_IFDEV=enp0s8 --net=hostT openio/sds
+# docker run -ti --tty -e OPENIO_IFDEV=enp0s8 --net=host openio/sds
 ```
 
 Specifying the IP:
