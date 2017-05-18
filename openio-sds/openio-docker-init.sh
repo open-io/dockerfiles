@@ -96,6 +96,9 @@ function update_swift_credentials(){
 
 # Clean
 /usr/bin/rm -f /run/oio/sds/*
+mkdir -pv /run/oio/sds
+chown openio.openio /run/oio/sds
+chmod 750 /run/oio /run/oio/sds
 
 # Firstboot script to setup OpenIO configuration
 if [ ! -f /etc/oio/sds/firstboot ]; then
