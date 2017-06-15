@@ -6,7 +6,7 @@ It deploys and configure a simple non-replicated namespace in a single Docker co
 ## How to use this image
 
 OpenIO SDS depends on IPs, meaning that you can't change service IPs after they have been registered to the cluster.  
-By default, Docker networking change you IP when you container restarts which is not compatible with OpenIO SDS at the moment.  
+By default, Docker networking change your IP when your container restarts which is not compatible with OpenIO SDS at the moment.  
 
 ### Keep it simple
 
@@ -29,7 +29,7 @@ To access the `openio` command line, you can access inside the container (suppos
 
 ### Using host network interface
 
-You can start an instance using Docker host mode networking, it allows you to access the services outside your container. You cant specify the interface or the IP you want to use.
+You can start an instance using Docker host mode networking, it allows you to access the services outside your container. You can specify the interface or the IP you want to use.
 
 Setting the interface:
 ```console
