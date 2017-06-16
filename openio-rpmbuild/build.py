@@ -77,7 +77,7 @@ def get_specfile():
 
 def is_git(url):
   urlparsed = urlparse.urlparse(url)
-  if re.match('.*\.git$',urlparsed.path):
+  if re.match('.*\\.git$',urlparsed.path):
     return True
   else:
     return False
