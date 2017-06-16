@@ -17,12 +17,12 @@ from git import Repo
 
 # Static
 homedir = os.path.expanduser('~')
-rpmbuilddir = homedir+'/rpmbuild'
-specdir = rpmbuilddir+'/SPECS'
+rpmbuilddir = homedir + '/rpmbuild'
+specdir = rpmbuilddir + '/SPECS'
 sourcedir = specdir
-srpmsdir = rpmbuilddir+'/SRPMS'
-rpmmacros_path = homedir+'/.rpmmacros'
-packagecloud_config = homedir+'/.packagecloud'
+srpmsdir = rpmbuilddir + '/SRPMS'
+rpmmacros_path = homedir + '/.rpmmacros'
+packagecloud_config = homedir + '/.packagecloud'
 tmpdir = '/tmp'
 
 # Overridable vars
