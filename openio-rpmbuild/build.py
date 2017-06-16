@@ -216,7 +216,7 @@ def download_sources():
           arcname = splitext(os.path.basename(specsource))[0]
         git_clone(stripped_url,sourcedir,branch,commit,archive=os.path.basename(specsource),arcname=arcname)
       else:
-        download_file(stripped_url,directory+'/'+os.path.basename(urlparsed.path))
+        download_file(stripped_url,sourcedir+'/'+os.path.basename(urlparsed.path))
 
 def spectool(rpm_options,specfile):
   ret = os.system('/usr/bin/spectool -g -S -R '+rpm_options+' '+specfile)
