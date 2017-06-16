@@ -36,8 +36,8 @@ upload_result = os.environ.get('UPLOAD_RESULT')
 def usage():
   print 'Usage: SPECFILE=http://example.com/myspecfile.spec build.py'
 
-# Redefine splitext for tar files
 def splitext(path):
+  '''Variant of os.path.splitext(path) that handles tar file extensions'''
   for ext in ['.tar.gz', '.tar.bz2', '.tar.xz']:
     if path.endswith(ext):
       return path[:-len(ext)], path[-len(ext):]
