@@ -353,7 +353,6 @@ def upload_pc(url):
   log('Upload to Package Cloud ended successfully.')
 
 def mock2pc_dist():
-  global distribution
   splitted_distribution = distribution.split('-')
   if len(splitted_distribution) == 4:
     dist,distvers,arch,repo = splitted_distribution
