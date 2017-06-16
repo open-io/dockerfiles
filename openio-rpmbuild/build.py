@@ -120,12 +120,12 @@ def git_clone(url,destdir,branch='master',commit=None,clean=True,archive=None,ar
       arcname = splitext(archive)[0]
     create_archive(destdir+'/'+archive,wkdir,arcname)
   else:
-    for file in glob.glob(wkdir+'/*'):
+    for filename in glob.glob(wkdir+'/*'):
       try:
-        shutil.move(file,destdir)
+        shutil.move(filename,destdir)
       except Exception, e:
         log('Exception :'+str(e),'ERROR')
-        log('Failed to copy file '+file+' to '+destdir,'ERROR')
+        log('Failed to copy file '+filename+' to '+destdir,'ERROR')
 
 def clean_git_repo(directory):
   try:
