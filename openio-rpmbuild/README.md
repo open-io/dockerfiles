@@ -1,7 +1,7 @@
 # What is openio/rpmbuild?
 
 This image provides an easy way to build RPM packages without configuring a dedicated server.
-It is build from a [Fedora](https://getfedora.org) 22 distribution, and provide a Python script that wraps the process to create a package, relying on rpmbuild and [Mock](https://fedoraproject.org/wiki/Mock) to build clean packages in chrooted environment.  
+It is built from a [Fedora](https://getfedora.org) 22 distribution, and provide a Python script that wraps the process to create a package, relying on rpmbuild and [Mock](https://fedoraproject.org/wiki/Mock) to build clean packages in chrooted environment.  
 The container should run in [*privileged mode*](http://blog.docker.com/2013/09/docker-can-now-run-within-docker/).  
 
 # How to use this image
