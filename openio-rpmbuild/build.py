@@ -76,7 +76,7 @@ def get_specfile():
   return False
 
 def is_git(url):
-  return re.match('.*\\.git$', urlparse.urlparse(url))
+  return re.match('.*\\.git$', urlparse.urlparse(url).path)
 
 def download_file(url, path):
   try:
@@ -267,8 +267,8 @@ def upload_http(url):
     with open(lpath, "rb") as fin:
         files = {"file": fin}
         ret = requests.post(url, files=files, data=data)
-        if r.status_code != requests.codes.ok:
-          log('Cannot upload package to oiorepo: ' + os.basename(lpath), 'ERROR')
+        if ret.status_code != requests.codes.ok:
+          log('Cannot upload package to oiorepo: ' + os.path.basename(lpath), 'ERROR')
 
 
 def upload_scp(url):
