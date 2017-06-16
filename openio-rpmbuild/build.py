@@ -2,15 +2,17 @@
 
 import os
 import re
-from git import Repo
 import glob
 import urlparse
-import requests
 import tarfile
 import shutil
+
 import rpm
+import requests
 import paramiko
+
 from scp import SCPClient
+from git import Repo
 
 ### Variables
 # Static
