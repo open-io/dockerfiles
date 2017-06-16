@@ -3,7 +3,7 @@ FROM fedora:22
 MAINTAINER Romain Acciari <romain.acciari@openio.io>
 
 RUN dnf -y install mock rpmdevtools git python-requests GitPython python-boto python-paramiko python-scp rubygems rubygem-json rubygem-bundler ruby-devel
-RUN dnf -y install http://mirror2.openio.io/pub/repo/testing/openio/sds/centos/7/common/x86_64/mock-config-openio-1.0-1.el7.oio.noarch.rpm
+RUN dnf -y install http://mirror2.openio.io/pub/repo/openio/sds/current/centos/7/x86_64/mock-config-openio-15.12.0-1.el7.oio.noarch.rpm
 RUN dnf -y install rpmlint
 RUN gem install package_cloud
 
