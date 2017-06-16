@@ -360,23 +360,26 @@ def mock2pc_dist():
     distro = dist
   return distro, distvers
 
+def main():
+  set_rpm_options()
+  set_specdir()
+  set_sourcedir()
+  # Download the specfile if not already present
+  if not get_specfile():
+    download_specfile(specfile, specdir)
+  # Check and download files using spectool
+  #download_sources(sources, sourcedir)
+  download_sources()
+  spectool(rpm_options, get_specfile())
+  # Create the SRPM
+  rpmbuild_bs(rpm_options, get_specfile())
+  # Build the package
+  mock(distribution, rpm_options, srpmsdir)
+  # List the resulting packages
+  list_result()
+  if upload_result:
+    upload(upload_result)
 
-### Main
-set_rpm_options()
-set_specdir()
-set_sourcedir()
-# Download the specfile if not already present
-if not get_specfile():
-  download_specfile(specfile, specdir)
-# Check and download files using spectool
-#download_sources(sources, sourcedir)
-download_sources()
-spectool(rpm_options, get_specfile())
-# Create the SRPM
-rpmbuild_bs(rpm_options, get_specfile())
-# Build the package
-mock(distribution, rpm_options, srpmsdir)
-# List the resulting packages
-list_result()
-if upload_result:
-  upload(upload_result)
+
+if __name__ == "__main__":
+    main()
