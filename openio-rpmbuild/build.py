@@ -244,8 +244,34 @@ def upload(url):
     return upload_scp(url)
   if urlparsed.scheme == 'packagecloud':
     return upload_pc(url)
+  if urlparsed.scheme == 'http':
+    return upload_http(url)
   log('URL scheme '+urlparsed.scheme+' not supported.')
   return False
+
+
+def upload_http(url):
+  '''Upload packages to an oiorepo web application'''
+  # http://127.0.0.1:5000/package
+  log('Uploading files using HTTP')
+  urlparsed = urlparse.urlparse(url)
+  if urlparsed.scheme != 'http':
+    log('Cannot upload files using http since URI seems not to be a http protocol','ERROR')
+
+  data = {
+      'company': os.environ.get('OIO_COMPANY', 'openio'),
+      'prod': os.environ.get('OIO_PROD', 'sds'),
+      'prod_ver': os.environ.get('OIO_PROD_VER'),
+      'distro': os.environ.get('OIO_DISTRO'),
+      'distro_ver': os.environ.get('OIO_DISTRO_VER'),
+      'arch': os.environ.get('OIO_ARCH'),
+  }
+
+  for lpath in glob.glob('/var/lib/mock/*/result/*.rpm'):
+    with open(lpath, "rb") as fin:
+        files = {"file": fin}
+        ret = requests.post(url, files=files, data=data)
+
 
 def upload_scp(url):
   # scp://host/remote_path/?port=22&username=user&password=passwd || packagecloud://user/
