@@ -323,7 +323,6 @@ def upload_pc(url):
   # packagecloud://user/repo/distro/distro_server?token='{"url":"https://packagecloud.io","token":"763ba46554b1a31e1c9ab7a148a74440d43a22a7eb6112a9"}'
   urlparsed = urlparse.urlparse(url)
   query = urlparse.parse_qs(urlparsed.query)
-  stripped_url = url_strip_query_fragment(url)
   splitted_path = (urlparsed.path.strip('/')).split('/')
   user = urlparsed.netloc
   if len(splitted_path) == 3:
@@ -353,9 +352,9 @@ def upload_pc(url):
 def mock2pc_dist():
   splitted_distribution = distribution.split('-')
   if len(splitted_distribution) == 4:
-    dist, distvers, arch, repo = splitted_distribution
+    dist, distvers, _, _ = splitted_distribution
   else:
-    dist, distvers, arch = splitted_distribution
+    dist, distvers, _ = splitted_distribution
   if dist == 'epel':
     distro = 'el'
   else:
