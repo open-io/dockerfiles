@@ -15,7 +15,6 @@ import paramiko
 from scp import SCPClient
 from git import Repo
 
-### Variables
 # Static
 homedir = os.path.expanduser('~')
 rpmbuilddir = homedir+'/rpmbuild'
@@ -25,7 +24,7 @@ srpmsdir = rpmbuilddir+'/SRPMS'
 rpmmacros_path = homedir+'/.rpmmacros'
 packagecloud_config = homedir+'/.packagecloud'
 tmpdir = '/tmp'
-# Set _sourcedir to _specdir
+
 # Overridable vars
 specfile = os.environ.get('SPECFILE')
 sources = os.environ.get('SOURCES', '')
@@ -34,7 +33,6 @@ distribution = os.environ.get('DISTRIBUTION', 'epel-7-x86_64')
 specfile_tag = os.environ.get('SPECFILE_TAG')
 upload_result = os.environ.get('UPLOAD_RESULT')
 
-### Functions
 def usage():
   print 'Usage: SPECFILE=http://example.com/myspecfile.spec build.py'
 
