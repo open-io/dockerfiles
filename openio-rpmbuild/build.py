@@ -102,15 +102,15 @@ def git_clone(url, destdir, branch='master', commit=None, clean=True, archive=No
     wkdir = tmpdir + '/' + os.path.basename(urlparsed.path)
     repo = Repo.clone_from(url, wkdir, branch=branch)
   except Exception, e:
+    log('Failed to clone git repository ' + url)
     log('Exception :' + str(e), 'ERROR')
-    log('Failed to clone git repository ' + url, 'ERROR')
   if commit:
     try:
       log('Resetting git repository to commid id ' + commit)
       repo.head.reset(commit=commit, index=True)
     except Exception, e:
-      log('Exception :' + str(e), 'ERROR')
       log('Failed to reset git repository to commit id ' + commit)
+      log('Exception :' + str(e), 'ERROR')
   if clean:
     clean_git_repo(wkdir)
   if archive:
@@ -122,8 +122,8 @@ def git_clone(url, destdir, branch='master', commit=None, clean=True, archive=No
       try:
         shutil.move(filename, destdir)
       except Exception, e:
+        log('Failed to copy file ' + filename + ' to ' + destdir)
         log('Exception :' + str(e), 'ERROR')
-        log('Failed to copy file ' + filename + ' to ' + destdir, 'ERROR')
 
 def clean_git_repo(directory):
   try:
@@ -142,8 +142,8 @@ def create_archive(archive, source, arcname=None, clean=True):
     with tarfile.open(archive, 'w:' + compression) as tar:
       tar.add(source, arcname=arcname)
   except Exception, e:
+    log('Failed to create tar file ' + archive + ' from ' + source)
     log('Exception :' + str(e), 'ERROR')
-    log('Failed to create tar file ' + archive + ' from ' + source, 'ERROR')
   if clean:
     try:
       shutil.rmtree(source)
@@ -303,18 +303,17 @@ def upload_scp(url):
     try:
       scp.put(lpath, rpath)
     except Exception, e:
-      log('Exception :' + str(e), 'ERROR')
       log('Failed to upload file ' + lpath + ' to ' + host + ':' + rpath)
+      log('Exception :' + str(e), 'ERROR')
 
 def pc_config(token):
   try:
     log('Configure Package Cloud token')
     with open(packagecloud_config, 'w') as pc_config:
       pc_config.write(token)
+    return True
   except Exception, e:
     log('Failed to set token  in ' + packagecloud_config, 'ERROR')
-    return False
-  return True
 
 def upload_pc(url):
   # packagecloud://user/repo/distro/distro_server?token='{"url":"https://packagecloud.io","token":"763ba46554b1a31e1c9ab7a148a74440d43a22a7eb6112a9"}'
@@ -342,8 +341,8 @@ def upload_pc(url):
       if ret != 0:
         log('Failed to upload package ' + lpath + ' to Package Cloud to ' + user + '/' + repo + '/' + distro + '/' + distro_version, 'ERROR')
     except Exception, e:
-      log('Exception :' + str(e), 'ERROR')
       log('Failed to push file ' + lpath + ' to Package Cloud ' + user + '/' + repo + '/' + distro + '/' + distro_version)
+      log('Exception :' + str(e), 'ERROR')
   log('Upload to Package Cloud ended successfully.')
 
 def mock2pc_dist():
