@@ -267,6 +267,8 @@ def upload_http(url):
     with open(lpath, "rb") as fin:
         files = {"file": fin}
         ret = requests.post(url, files=files, data=data)
+        if r.status_code != requests.codes.ok:
+          log('Cannot upload package to oiorepo: ' + os.basename(lpath), 'ERROR')
 
 
 def upload_scp(url):
