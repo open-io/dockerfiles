@@ -88,6 +88,21 @@ You can upload the resulting packages using SCP:
 # docker run -e UPLOAD_RESULT="scp://host/remote_path/?port=22&username=user&password=passwd" -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true -v local/lib/mock:/var/lib/mock --rm openio/rpmbuild
 ```
 
+Or you can upload using http to an oiorepo flask web application:
+
+```console
+# docker run -e UPLOAD_RESULT="http://${OIOREPO_IP}:5000/package" \
+             -e OIO_PROD_VER="16.10" \
+             -e OIO_DISTRO="centos" \
+             -e OIO_DISTRO_VER="7" \
+             -e OIO_ARCH="x86_64" \
+             -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec \
+             --privileged=true \
+             -v local/lib/mock:/var/lib/mock \
+             --rm \
+             openio/rpmbuild
+```
+
 # License
 
 The included script is provided under [Apache License v2](http://www.apache.org/licenses/LICENSE-2.0).
