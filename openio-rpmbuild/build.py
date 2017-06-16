@@ -65,9 +65,8 @@ def log(msg, level='INFO'):
 def set_sourcedir(srcdir=sourcedir, macros_path=rpmmacros_path):
   try:
     log('Setting %_sourcedir to ' + srcdir)
-    rpmmacros = open(macros_path, 'w')
-    rpmmacros.write('%_sourcedir ' + srcdir + '\n')
-    rpmmacros.close()
+    with open(macros_path, 'w') as rpmmacros:
+      rpmmacros.write('%_sourcedir ' + srcdir + '\n')
   except Exception, e:
     log('Failed to set macro %_sourcedir', 'ERROR')
 
@@ -311,9 +310,8 @@ def upload_scp(url):
 def pc_config(token):
   try:
     log('Configure Package Cloud token')
-    pc_config = open(packagecloud_config, 'w')
-    pc_config.write(token)
-    pc_config.close()
+    with open(packagecloud_config, 'w') as pc_config:
+      pc_config.write(token)
   except Exception, e:
     log('Failed to set token  in ' + packagecloud_config, 'ERROR')
     return False
