@@ -46,9 +46,11 @@ function initcluster(){
   /usr/bin/openio --oio-ns=$NS directory bootstrap --replicas $NBREPLICAS || \
     (echo "Error: Directory bootstrap failed. Aborting." ; exit 1)
 
-  # Restarting meta0 and meta1
-  echo "> Restarting directory services ..."
-  /usr/bin/gridinit_cmd restart @meta0 @meta1
+  # Stopping services
+  echo "> Stopping services ..."
+  gridinit_pid=$(cat /run/gridinit/gridinit.pid)
+  kill "$gridinit_pid" >/dev/null 2>&1
+  /usr/bin/timeout "30s" tail --pid="$gridinit_pid" -f /dev/null || kill -s 9 "$gridinit_pid"
 
 }
 
@@ -70,8 +72,13 @@ function unlock(){
 }
 
 function gridinit_start(){
+  echo "> Starting services ..."
   pkill -0 -F /run/gridinit/gridinit.pid >/dev/null 2>&1 || \
-    /usr/bin/gridinit -d /etc/gridinit.conf >/dev/null 2>&1
+    /usr/bin/gridinit /etc/gridinit.conf >/dev/null 2>&1
+}
+
+function set_unlock(){
+  sed -i -e "/^\[type:/a lock_at_first_register=false" /etc/oio/sds/*/conscience-*/conscience-*-services.conf
 }
 
 function update_swift_credentials(){
@@ -122,14 +129,12 @@ if [ ! -f /etc/oio/sds/firstboot ]; then
   # Deploy OpenIO
   initcluster
 
+  # Unlock services
+  set_unlock
+
   # Firstboot is done
   touch /etc/oio/sds/firstboot
 fi
 
-# Start gridinit if not already started
+# Start gridinit
 gridinit_start
-
-unlock
-
-# Give a prompt
-/bin/bash
