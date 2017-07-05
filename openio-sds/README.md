@@ -15,10 +15,10 @@ An Openstack Swift proxy with the Swift3 middleware is available, with [TempAuth
 
 
 ```console
-# docker run openio/sds
+# docker run -d openio/sds
 ```
 
-When starting the container, it takes a few seconds to start (depending on your host performance).
+When starting the container, it takes a few seconds to start (depending on your host performance). To show the container startup, you can remove the `-d` option to the command line.
 
 To access the `openio` command line, you can access inside the container (supposing the OpenIO SDS container is the latest you started):
 
