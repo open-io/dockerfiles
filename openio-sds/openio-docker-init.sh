@@ -74,7 +74,7 @@ function unlock(){
 function gridinit_start(){
   echo "> Starting services ..."
   pkill -0 -F /run/gridinit/gridinit.pid >/dev/null 2>&1 || \
-    /usr/bin/gridinit /etc/gridinit.conf >/dev/null 2>&1
+    exec /usr/bin/gridinit /etc/gridinit.conf
 }
 
 function set_unlock(){
