@@ -15,7 +15,15 @@ An Openstack Swift proxy with the Swift3 middleware is available, with [TempAuth
 
 
 ```console
-# docker run -ti --tty openio/sds
+# docker run openio/sds
+```
+
+When starting the container, it takes a few seconds to start (depending on your host performance).
+
+To access the `openio` command line, you can access inside the container (supposing the OpenIO SDS container is the latest you started):
+
+```console
+# docker exec -ti --tty $(docker ps -l --format "{{.ID}}") /bin/bash
 ```
 
 
@@ -25,27 +33,27 @@ You can start an instance using Docker host mode networking, it allows you to ac
 
 Setting the interface:
 ```console
-# docker run -ti --tty -e OPENIO_IFDEV=enp0s8 --net=host openio/sds
+# docker run -e OPENIO_IFDEV=enp0s8 --net=host openio/sds
 ```
 
 Specifying the IP:
 ```console
-# docker run -ti --tty -e OPENIO_IPADDR=192.168.56.101 --net=host openio/sds
+# docker run -e OPENIO_IPADDR=192.168.56.101 --net=host openio/sds
 ```
 
 Change the Openstack Swift default credentials:  
 ```console
-# docker run -ti --tty -e OPENIO_IFDEV=enp0s8 --net=host -e SWIFT_CREDENTIALS="myproject:myuser:mypassord:.admin" openio/sds
+# docker run -e OPENIO_IFDEV=enp0s8 --net=host -e SWIFT_CREDENTIALS="myproject:myuser:mypassord:.admin" openio/sds
 ```
 
 Bind the Openstack Swift/Swift3 proxy port to you host:  
 ```console
-# docker run -ti --tty -p 192.168.56.101:6007:6007 openio/sds
+# docker run -p 192.168.56.101:6007:6007 openio/sds
 ```
 
 Setting the default credentials to test Openstack Swift functionnal tests:  
 ```console
-# docker run -ti --tty -p 192.168.56.101:6007:6007 -e SWIFT_CREDENTIALS="admin:admin:admin:.admin .reseller_admin,test2:tester2:testing2:.admin,test5:tester5:testing5:service,test:tester:testing:.admin,test:tester3:testing" openio/sds
+# docker run -p 192.168.56.101:6007:6007 -e SWIFT_CREDENTIALS="admin:admin:admin:.admin .reseller_admin,test2:tester2:testing2:.admin,test5:tester5:testing5:service,test:tester:testing:.admin,test:tester3:testing" openio/sds
 ```
 
 
