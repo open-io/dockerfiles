@@ -1,0 +1,158 @@
+#set -x
+#DIST=xenial
+#ARCH=amd64
+#DISTID=Ubuntu
+
+ALLOWUNTRUSTED=yes
+AUTO_DEBSIGN=${AUTO_DEBSIGN:-no}
+HOOKDIR=/var/cache/pbuilder/hook.d
+#EXTRAPACKAGES="gdebi-core"
+USENETWORK=yes
+
+# Codenames for Debian suites according to their alias. Update these when
+# needed.
+UNSTABLE_CODENAME="sid"
+TESTING_CODENAME="stretch"
+STABLE_CODENAME="jessie"
+STABLE_BACKPORTS_SUITE="$STABLE_CODENAME-backports"
+
+# List of Debian suites.
+DEBIAN_SUITES=($UNSTABLE_CODENAME $TESTING_CODENAME $STABLE_CODENAME $STABLE_BACKPORTS_SUITE
+    "unstable" "testing" "stable")
+
+# List of Ubuntu suites. Update these when needed.
+UBUNTU_STABLE_CODENAME="xenial"
+UBUNTU_SUITES=("xenial")
+
+# Mirrors to use. Update these to your preferred mirror.
+DEBIAN_MIRROR="ftp.fr.debian.org"
+UBUNTU_MIRROR="mirrors.kernel.org"
+#RASPBIAN_MIRROR="http://archive.raspbian.org/raspbian"
+#RASPBIAN_MIRROR="http://raspbian.sconde.net/raspbian"
+RASPBIAN_MIRROR="http://mirrors.ircam.fr/pub/raspbian/raspbian"
+
+### DIST AUTODETECTION
+# Optionally use the changelog of a package to determine the suite to use if
+# none set.
+if [ -z "${DIST}" ] && [ -r "debian/changelog" ]; then
+    DIST=$(dpkg-parsechangelog | awk '/^Distribution: / {print $2}')
+    # Use the unstable suite for certain suite values.
+    if $(echo "experimental UNRELEASED" | grep -q $DIST); then
+        DIST="$UNSTABLE_CODENAME"
+    fi
+    # Use the stable suite for stable-backports.
+    if $(echo "$STABLE_BACKPORTS_SUITE" | grep -q $DIST); then
+        DIST="$STABLE_CODENAME"
+    fi
+fi
+
+# Optionally set a default distribution if none is used. Note that you can set
+# your own default (i.e. ${DIST:="unstable"}).
+: ${DIST:="$(lsb_release --short --codename)"}
+
+### Fix DIST if using unstable/testing/stable codenames
+### Beware it can break the buildchain
+# Optionally change Debian release states in $DIST to their names.
+case "$DIST" in
+    unstable)
+        DIST="$UNSTABLE_CODENAME"
+        ;;
+    testing)
+        DIST="$TESTING_CODENAME"
+        ;;
+    stable)
+        DIST="$STABLE_CODENAME"
+        ;;
+esac
+
+### Default architecture to the build host
+# Optionally set the architecture to the host architecture if none set. Note
+# that you can set your own default (i.e. ${ARCH:="i386"}).
+: ${ARCH:="$(dpkg --print-architecture)"}
+
+### Set DISTID dependent options
+if [ -z "$DISTID" ]; then
+  # Default to Debian
+  if $(echo ${DEBIAN_SUITES[@]} | grep -q $DIST); then
+    DISTID="debian"
+  elif $(echo ${UBUNTU_SUITES[@]} | grep -q $DIST); then
+    DISTID="ubuntu"
+  else
+    echo "Unknown distribution: $DIST"
+    exit 1
+  fi
+fi
+
+### Set Debootstrap options
+NAME="$DISTID-$DIST"
+if [ -n "$ARCH" ]; then
+    NAME="$NAME-$ARCH"
+    DEBOOTSTRAPOPTS=("--arch" "$ARCH" "${DEBOOTSTRAPOPTS[@]}")
+fi
+if [ "$ARCH" != "$(dpkg --print-architecture)" ]; then
+    DEBOOTSTRAP="qemu-debootstrap"
+fi
+
+shopt -s nocasematch
+echo "$DISTID $DIST $ARCH"
+if [[ "$DISTID" == 'debian' ]]; then
+    echo DEBIAN
+    # Debian configuration
+    MIRRORSITE="http://$DEBIAN_MIRROR/debian/"
+    COMPONENTS="main contrib non-free"
+    DEBOOTSTRAPOPTS=("${DEBOOTSTRAPOPTS[@]}" "--keyring=/usr/share/keyrings/debian-archive-keyring.gpg")
+#    OTHERMIRROR="deb http://mirror.openio.io/pub/repo/openio/sds/16.10/debian $DIST/"
+    OTHERMIRROR="$OTHERMIRROR | deb $MIRRORSITE $STABLE_BACKPORTS_SUITE $COMPONENTS"
+    OTHERMIRROR="${OTHERMIRROR} | deb http://mirror.openio.io/pub/repo/openio/sds/testing/debian $DIST/"
+#    OTHERMIRROR="${OTHERMIRROR} | deb http://mirror.openio.io/pub/repo/openio/sds/unstable/debian $DIST/"
+    OTHERMIRROR="${OTHERMIRROR} | deb http://oiofs:YTc1ZTUwM2RlZWMy@mirror.openio.io/pub/repo/openio/oiofs/testing/debian $DIST/"
+
+elif [[ "$DISTID" == 'ubuntu' ]]; then
+    # Ubuntu configuration
+    echo "### $ARCH ###"
+    if [[ "$ARCH" != 'amd64' && "$ARCH" != 'i386' ]]; then
+      #PBUILDERSATISFYDEPENDSCMD=/usr/lib/pbuilder/pbuilder-satisfydepends-gdebi
+      PBUILDERSATISFYDEPENDSCMD=/usr/lib/pbuilder/pbuilder-satisfydepends-experimental
+      EXTRAPACKAGES="gdebi"
+      MIRRORSITE="http://ports.ubuntu.com/ubuntu-ports/"
+      OTHERMIRROR="${OTHERMIRROR} | deb http://mirror.openio.io/pub/repo/openio/sds/16.10/ubuntu-arm64 $DIST/"
+    else
+      MIRRORSITE="http://$UBUNTU_MIRROR/ubuntu/"
+      OTHERMIRROR="${OTHERMIRROR} | deb http://mirror.openio.io/pub/repo/openio/sds/16.10/ubuntu $DIST/"
+      OTHERMIRROR="${OTHERMIRROR} | deb http://mirror.openio.io/pub/repo/openio/sds/testing/ubuntu $DIST/"
+    fi
+    COMPONENTS="main restricted universe multiverse"
+    DEBOOTSTRAPOPTS=("${DEBOOTSTRAPOPTS[@]}" "--keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg")
+#    OTHERMIRROR="deb http://mirror.openio.io/pub/repo/openio/sds/16.10/ubuntu $DIST/"
+#    OTHERMIRROR="${OTHERMIRROR} | deb http://mirror.openio.io/pub/repo/openio/sds/unstable/ubuntu $DIST/"
+    OTHERMIRROR="${OTHERMIRROR} | deb http://mirror.openio.io/pub/repo/openio/sds/testing/ubuntu $DIST/"
+    OTHERMIRROR="${OTHERMIRROR} | deb http://oiofs:YTc1ZTUwM2RlZWMy@mirror.openio.io/pub/repo/openio/oiofs/testing/ubuntu $DIST/"
+
+elif [[ "$DISTID" == 'raspbian' ]]; then
+    echo RASPBIAN
+    # Raspbian configuration
+    ARCH='armhf'
+    MIRRORSITE="http://mirrors.ircam.fr/pub/raspbian/raspbian"
+    COMPONENTS="main contrib non-free"
+    DEBOOTSTRAPOPTS=("${DEBOOTSTRAPOPTS[@]}" "--keyring=/usr/share/keyrings/raspbian-archive-keyring.gpg")
+    OTHERMIRROR="${OTHERMIRROR} | deb http://$DEBIAN_MIRROR/debian/ jessie-backports $COMPONENTS"
+    OTHERMIRROR="deb http://mirror.openio.io/pub/repo/openio/sds/16.10/raspbian $DIST/"
+#    OTHERMIRROR="$OTHERMIRROR | deb $MIRRORSITE $STABLE_BACKPORTS_SUITE $COMPONENTS"
+#    OTHERMIRROR="${OTHERMIRROR} | deb http://mirror.openio.io/pub/repo/openio/sds/testing/debian $DIST/"
+#    OTHERMIRROR="${OTHERMIRROR} | deb http://mirror.openio.io/pub/repo/openio/sds/unstable/debian $DIST/"
+#    OTHERMIRROR="${OTHERMIRROR} | deb http://oiofs:YTc1ZTUwM2RlZWMy@mirror.openio.io/pub/repo/openio/oiofs/testing/debian $DIST/"
+
+else
+    echo "Unknown distribution: $DISTID"
+    exit 1
+fi
+
+BASETGZ="/var/cache/pbuilder/$NAME-base.tgz"
+# Optionally, set BASEPATH (and not BASETGZ) if using cowbuilder
+# BASEPATH="/var/cache/pbuilder/$NAME/base.cow/"
+DISTRIBUTION="$DIST"
+BUILDRESULT="/var/cache/pbuilder/$NAME/result/"
+APTCACHE="/var/cache/pbuilder/$NAME/aptcache/"
+BUILDPLACE="/var/cache/pbuilder/build/"
+#BINDMOUNTS="/var/cache/archive"
+
