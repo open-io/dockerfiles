@@ -1,0 +1,6 @@
+[oio-sds]
+name=OpenIO SDS Packages for Centos $releasever - $basearch
+baseurl=http://DOCKER_HOST_IP:8000/openio/sds/16.10/centos/$releasever/$basearch
+enabled=1
+gpgcheck=1
+gpgkey=http://mirror.openio.io/pub/repo/openio/RPM-GPG-KEY-OPENIO-0
