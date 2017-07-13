@@ -26,16 +26,6 @@ The GPG signing keys for the test repositories have been generated like that:
 
     docker run -p 5000:5000 -v /tmp/oio-repo:/tmp openio-repo
 
-# To run as a daemon (a docker stack in a docker swarm)
-
-    docker swarm init
-    docker stack deploy -c docker-compose.yml openio-repo-stack
-
-# To stop the stack
-
-    docker stack rm openio-repo-stack
-    docker swarm leave --force
-
 # To serve the repository files through HTTP (on port 8000)
 
     # Start a HTTP server for yum to download the files from
