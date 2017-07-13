@@ -1,4 +1,3 @@
-# Use an official Python runtime as a base image
 FROM nginx
 
 RUN set -ex && apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
