@@ -9,7 +9,6 @@
 - Use createrepo python package
 - HTTPS
 
-- Make the flask web app also the webserver for the repositories
 - Make 'arch' param optional for DEB repositories
 - API (c.f. https://packagecloud.io/)
 
