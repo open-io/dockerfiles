@@ -6,7 +6,7 @@ setup(
     name='OpenIO Repository',
     version='0.1',
     long_description=__doc__,
-    packages=['openio-repo'],
+    packages=['openiorepo'],
     include_package_data=False,
     zip_safe=False,
     install_requires=['Flask']
