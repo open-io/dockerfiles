@@ -24,7 +24,8 @@ The GPG signing keys for the test repositories have been generated like that:
 - With local directory (/tmp/oio-repo) mounted inside the container (at /tmp) to
   keep repo storage outside docker
 
-    docker run -p 5000:5000 -v /tmp/oio-repo:/tmp openio-repo
+    docker run -p 5000:5000 -v /tmp/oio-repo:/oiorepodestdir \
+            -v /path/to/keyFile:/root/keyFile:ro openio-repo
 
 # To serve the repository files through HTTP (on port 8000)
 
