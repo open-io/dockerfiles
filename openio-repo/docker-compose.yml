@@ -10,8 +10,8 @@ services:
       - "5000:5000"
     volumes:
       - /tmp/oio-repo:/tmp
-  nginx:
-    image: openio/repo-nginx
+  front:
+    image: openio/repo-front
     deploy:
       replicas: 5
       restart_policy:
