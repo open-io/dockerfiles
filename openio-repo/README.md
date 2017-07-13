@@ -1,3 +1,7 @@
+# Configure repository signing key
+
+Edit `docker-compose.yml` to configure `oiorepo` service's volumes
+
 # To run as a daemon (a docker stack in a docker swarm)
 
     docker swarm init
