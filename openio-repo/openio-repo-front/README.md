@@ -1,3 +1,3 @@
-# To build the oio-repo service docker images
+# To build the openio/repo-front service docker images
 
-    docker build -t openio/repo-nginx -f Dockerfile .
+    docker build -t openio/repo-front -f Dockerfile .
