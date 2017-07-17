@@ -9,7 +9,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - /tmp/oio-repo:/oiorepodestdir
+      - /home/build/pub:/oiorepodestdir
       - ./openio-repo/test/keyFile:/root/keyFile:ro
   front:
     image: openio/repo-front
@@ -20,5 +20,5 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - /tmp/oio-repo:/usr/share/nginx/html/pub/repo:ro
+      - /home/build/pub:/usr/share/nginx/html/pub/repo:ro
 
