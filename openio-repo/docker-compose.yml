@@ -21,4 +21,5 @@ services:
       - "8080:80"
     volumes:
       - /home/build/pub:/usr/share/nginx/html/pub/repo:ro
+      - ./openio-repo/test/keyFile.pub:/usr/share/nginx/html/pub/repo/keyFile.pub:ro
 
