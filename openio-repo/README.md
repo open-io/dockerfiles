@@ -1,6 +1,7 @@
 # Configure repository signing key
 
-Edit `docker-compose.yml` to configure `oiorepo` service's volumes
+Edit `docker-compose.yml` to configure `oiorepo` service's volumes in order to
+make the right signing keys available to the build process.
 
 # To run as a daemon (a docker stack in a docker swarm)
 
