@@ -12,9 +12,10 @@ RUN gem install package_cloud
 VOLUME ["/var/lib/mock","/var/cache/mock"]
 
 RUN useradd -u 1000 -G mock builder
-COPY build.py /home/builder/
-RUN chown builder /home/builder/build.py
 USER builder
+
+COPY build.py /home/builder/
+
 RUN rpmdev-setuptree
 
 # You should at least specify the SPECFILE environment variable
