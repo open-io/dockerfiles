@@ -24,6 +24,7 @@ srpmsdir = rpmbuilddir + '/SRPMS'
 rpmmacros_path = homedir + '/.rpmmacros'
 packagecloud_config = homedir + '/.packagecloud'
 tmpdir = '/tmp'
+github = "https://raw.githubusercontent.com/open-io/rpm-specfiles/master"
 
 # Overridable vars
 specfile = os.environ.get('SPECFILE')
@@ -32,6 +33,11 @@ rpm_options = os.environ.get('RPM_OPTIONS', '')
 distribution = os.environ.get('DISTRIBUTION', 'epel-7-x86_64')
 specfile_tag = os.environ.get('SPECFILE_TAG')
 upload_result = os.environ.get('UPLOAD_RESULT')
+
+# If we're only given a package name, infer the corresponding github url
+oio_package = os.environ.get('OIO_PACKAGE')
+if not specfile and oio_package:
+  specfile = "%s/%s/%s.spec" % (github, oio_package, oio_package)
 
 def usage():
   print 'Usage: SPECFILE=http://example.com/myspecfile.spec build.py'
