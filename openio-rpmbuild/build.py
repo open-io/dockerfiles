@@ -275,6 +275,7 @@ def upload_http(url):
         ret = requests.post(url, files=files, data=data)
         if ret.status_code != requests.codes.ok:
           log('Cannot upload package to oiorepo: ' + os.path.basename(lpath), 'ERROR')
+          ret.raise_for_status()
 
 
 def upload_scp(url):
