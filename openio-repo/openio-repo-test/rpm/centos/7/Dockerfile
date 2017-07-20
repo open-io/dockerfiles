@@ -8,7 +8,7 @@ CMD curl http://172.17.0.1:8080/pub/keyFile.pub > /keyFile.pub && \
     { \
         echo "[oio-sds]"; \
         echo "name=OpenIO SDS Packages for Centos $releasever - $basearch"; \
-        echo "baseurl=http://${OIOREPO_IP}:${OIOREPO_PORT}/${OIOREPO_PATH}/$basearch"; \
+        echo "baseurl=http://${OIOREPO_IP}:${OIOREPO_PORT}/${OIOREPO_PATH}/\$basearch"; \
         echo "enabled=1"; \
         echo "gpgcheck=1"; \
         echo "gpgkey=http://${OIOREPO_IP}:${OIOREPO_PORT}/pub/keyFile.pub"; \
