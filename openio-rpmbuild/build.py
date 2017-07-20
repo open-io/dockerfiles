@@ -5,6 +5,7 @@ import os
 import re
 import glob
 import urlparse
+import datetime
 import tarfile
 import shutil
 
@@ -260,13 +261,14 @@ def upload_http(url):
   if urlparsed.scheme != 'http':
     log('Cannot upload files using http since URI seems not to be a http protocol', 'ERROR')
 
+  today = datetime.date.today()
   data = {
       'company': os.environ.get('OIO_COMPANY', 'openio'),
       'prod': os.environ.get('OIO_PROD', 'sds'),
-      'prod_ver': os.environ.get('OIO_PROD_VER'),
-      'distro': os.environ.get('OIO_DISTRO'),
-      'distro_ver': os.environ.get('OIO_DISTRO_VER'),
-      'arch': os.environ.get('OIO_ARCH'),
+      'prod_ver': os.environ.get('OIO_PROD_VER', today.strftime("%y.%m")),
+      'distro': os.environ.get('OIO_DISTRO', 'centos'),
+      'distro_ver': os.environ.get('OIO_DISTRO_VER', '7'),
+      'arch': os.environ.get('OIO_ARCH', 'x86_64'),
   }
 
   for lpath in glob.glob('/var/lib/mock/*/result/*.rpm'):
@@ -274,7 +276,12 @@ def upload_http(url):
         files = {"file": fin}
         ret = requests.post(url, files=files, data=data)
         if ret.status_code != requests.codes.ok:
-          log('Cannot upload package to oiorepo: ' + os.path.basename(lpath), 'ERROR')
+          log('Cannot upload package: ' + os.path.basename(lpath))
+          log('to oiorepo: ' + url)
+          log('Parameters for oiorepo web app: ' + str(data))
+          log('request.status_code: ' + str(ret.status_code))
+          log('request.text:')
+          log(ret.text)
           ret.raise_for_status()
 
 
