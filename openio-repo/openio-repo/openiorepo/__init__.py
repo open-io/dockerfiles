@@ -7,7 +7,7 @@ repository by uploading packages files (by HTTP POST'ing) to its '/package' URI.
 
 For example like that:
 
-# curl -F 'file=@path/to/package.rpm' \\
+# curl -F 'file=@path/to/package.rpm' \\
        -F 'company=openio' \\
        -F 'prod=sds' \\
        -F 'prod_ver=16.10' \\
