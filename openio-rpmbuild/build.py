@@ -34,6 +34,7 @@ rpm_options = os.environ.get('RPM_OPTIONS', '')
 distribution = os.environ.get('DISTRIBUTION', 'epel-7-x86_64')
 specfile_tag = os.environ.get('SPECFILE_TAG')
 upload_result = os.environ.get('UPLOAD_RESULT')
+keyfile = os.environ.get('OIO_KEYFILE')
 
 # If we're only given a package name, infer the corresponding github url
 oio_package = os.environ.get('OIO_PACKAGE')
@@ -67,6 +68,28 @@ def log(msg, level='INFO'):
     switch.get(level)(msg)
   except Exception, e:
     log_error('Failed to log msg ' + msg)
+
+rpmmacro_sign = """
+%_signature gpg
+%_gpg_name  vl@t.com
+%_gpg_path  %(echo $HOME)/.gnupg
+"""
+
+def set_keyfile():
+  if keyfile and os.path.exists(keyfile):
+    ret = os.system('gpg --import ' + keyfile)
+    if ret != 0:
+      log("Failed to import the GPG private key, your packages won't be signed.")
+      return False
+    try:
+      log('Setting %_signature')
+      with open(rpmmacros_path, 'a') as rpmmacros:
+        rpmmacros.write(rpmmacro_sign)
+        return True
+    except Exception, e:
+      log('Failed to set macro %_signature')
+      log(str(e), 'ERROR')
+  return False
 
 def set_sourcedir(srcdir=sourcedir, macros_path=rpmmacros_path):
   try:
@@ -241,6 +264,13 @@ def list_result():
   for path in glob.glob('/var/lib/mock/*/result/*.rpm'):
     log('- ' + path)
 
+def sign_rpms():
+  log('Signing generated files')
+  cmd = ['rpmsign', '--addsign'] + glob.glob('/var/lib/mock/*/result/*.rpm')
+  ret = os.system(' '.join(cmd))
+  if ret != 0:
+    log('Failed to sign packages.')
+
 def upload(url):
   urlparsed = urlparse.urlparse(url)
   if urlparsed.scheme == 'scp':
@@ -377,6 +407,7 @@ def main():
   set_rpm_options()
   set_specdir()
   set_sourcedir()
+  key_ok = set_keyfile()
   # Download the specfile if not already present
   if not get_specfile():
     download_specfile(specfile, specdir)
@@ -390,6 +421,8 @@ def main():
   mock(distribution, rpm_options, srpmsdir)
   # List the resulting packages
   list_result()
+  if key_ok:
+    sign_rpms()
   if upload_result:
     upload(upload_result)
 
