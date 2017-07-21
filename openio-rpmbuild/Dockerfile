@@ -14,9 +14,9 @@ VOLUME ["/var/lib/mock","/var/cache/mock"]
 RUN useradd -u 1000 -G mock builder
 USER builder
 
-COPY build.py /home/builder/
-
 RUN rpmdev-setuptree
+
+COPY build.py /home/builder/
 
 # You should at least specify the SPECFILE environment variable
 CMD ["/home/builder/build.py"]
