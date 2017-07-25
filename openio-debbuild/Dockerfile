@@ -13,6 +13,8 @@ RUN mkdir -p /etc/apt/sources.list.d && \
     apt-get autoremove -y && \
     rm -rf /var/cache/apt/archives/*.deb
 
+RUN gpg --keyring /usr/share/keyrings/raspbian-archive-keyring.gpg --no-default-keyring --keyserver keys.gnupg.net --recv-key 9165938D90FDDD2E
+
 WORKDIR /root
 
 RUN echo 'DEBEMAIL="ops@openio.io"'              >> .bashrc && \
