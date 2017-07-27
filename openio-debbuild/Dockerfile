@@ -24,6 +24,7 @@ RUN echo 'DEBEMAIL="ops@openio.io"'              >> .bashrc && \
     mkdir debbuildir
 
 COPY pbuilderrc .pbuilderrc
+COPY pbuilder.sh pbuilder.sh
 COPY doit.sh doit.sh
 
 RUN git clone https://github.com/open-io/deb-packaging.git
