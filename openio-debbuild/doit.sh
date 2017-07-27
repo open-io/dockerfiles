@@ -1,4 +1,4 @@
-#! /bin/bash -xe
+#! /bin/bash -x
 
 cd "deb-packaging"
 git pull origin master

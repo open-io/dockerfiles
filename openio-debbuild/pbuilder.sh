@@ -1,4 +1,4 @@
-#! /bin/bash -xe
+#! /bin/bash -x
 
 # Ensure we can run arm binaries automagically through qemu via binfmt_misc
 update-binfmts --display | grep -q 'qemu-arm (enabled)'
