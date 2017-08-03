@@ -8,9 +8,9 @@ CMD curl http://172.17.0.1:8080/pub/keyFile.pub > /keyFile.pub && \
     { \
         echo "[oio-sds]"; \
         echo "name=OpenIO SDS Packages for Centos $releasever - $basearch"; \
-        echo "baseurl=http://${OIO_REPO_IP}:${OIOREPO_PORT}/${OIOREPO_PATH}/\$basearch"; \
+        echo "baseurl=http://${OIO_REPO_IP}:${OIO_REPO_PORT}/${OIO_REPO_PATH}/\$basearch"; \
         echo "enabled=1"; \
         echo "gpgcheck=1"; \
-        echo "gpgkey=http://${OIO_REPO_IP}:${OIOREPO_PORT}/pub/keyFile.pub"; \
+        echo "gpgkey=http://${OIO_REPO_IP}:${OIO_REPO_PORT}/pub/keyFile.pub"; \
     } > /etc/yum.repos.d/oio-sds.repo && \
     yum install -y ${OIO_PACKAGE}
