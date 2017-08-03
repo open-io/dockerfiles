@@ -91,7 +91,7 @@ You can upload the resulting packages using SCP:
 Or you can upload using http to an oiorepo flask web application:
 
 ```console
-# docker run -e UPLOAD_RESULT="http://${OIOREPO_IP}:5000/package" \
+# docker run -e UPLOAD_RESULT="http://${OIO_REPO_IP}:5000/package" \
              -e OIO_PROD_VER="16.10" \
              -e OIO_DISTRO="centos" \
              -e OIO_DISTRO_VER="7" \
