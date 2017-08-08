@@ -25,7 +25,8 @@ srpmsdir = rpmbuilddir + '/SRPMS'
 rpmmacros_path = homedir + '/.rpmmacros'
 packagecloud_config = homedir + '/.packagecloud'
 tmpdir = '/tmp'
-github = "https://raw.githubusercontent.com/open-io"
+gitraw = "https://raw.githubusercontent.com"
+github_prefix = "https://github.com/"
 
 # Overridable vars
 specfile = os.environ.get('SPECFILE')
@@ -37,11 +38,21 @@ upload_result = os.environ.get('UPLOAD_RESULT')
 keyfile = os.environ.get('OIO_KEYFILE')
 repo_name = os.environ.get('GIT_REPO_NAME', 'rpm-specfiles')
 branch = os.environ.get('GIT_BRANCH', 'master')
+gitremote = os.environ.get('GIT_REMOTE')
+
+gitaccount = 'open-io'
+if gitremote:
+  if gitremote.startswith(github_prefix):
+    urlparsed = urlparse.urlparse(gitremote)
+    gitaccount = urlparsed.path.split('/')[1]
+  else:
+    print 'Only urls starting with: ' + github_prefix + ' are supported'
+    exit(1)
 
 # If we're only given a package name, infer the corresponding github url
 oio_package = os.environ.get('OIO_PACKAGE')
 if not specfile and oio_package:
-  specfile = "%s/%s/%s/%s/%s.spec" % (github, repo_name, branch, oio_package, oio_package)
+  specfile = "%s/%s/%s/%s/%s/%s.spec" % (gitraw, gitaccount, repo_name, branch, oio_package, oio_package)
 
 def usage():
   print 'Usage: SPECFILE=http://example.com/myspecfile.spec build.py'
