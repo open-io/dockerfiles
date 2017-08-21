@@ -9,7 +9,7 @@ RUN mkdir -p /etc/apt/sources.list.d && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y pbuilder dh-make ubuntu-archive-keyring binfmt-support qemu qemu-user-static && \
-    apt-get install -y -t jessie-backports debootstrap devscripts curl && \
+    apt-get install -y -t jessie-backports debootstrap devscripts curl apt-utils && \
     apt-get autoremove -y && \
     rm -rf /var/cache/apt/archives/*.deb
 
