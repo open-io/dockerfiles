@@ -39,6 +39,7 @@ keyfile = os.environ.get('OIO_KEYFILE')
 repo_name = os.environ.get('GIT_REPO_NAME', 'rpm-specfiles')
 branch = os.environ.get('GIT_BRANCH', 'master')
 gitremote = os.environ.get('GIT_REMOTE')
+repo_ip = os.environ.get('OIO_REPO_IP')
 
 gitaccount = 'open-io'
 if gitremote:
@@ -267,6 +268,17 @@ def rpmbuild_bs(rpm_options, specfile):
   if ret != 0:
     log('Failed to create SRPM package.', 'ERROR')
 
+def get_repo_data():
+  today = datetime.date.today()
+  return {
+      'company': os.environ.get('OIO_COMPANY', 'openio'),
+      'prod': os.environ.get('OIO_PROD', 'sds'),
+      'prod_ver': os.environ.get('OIO_PROD_VER', today.strftime("%y.%m")),
+      'distro': os.environ.get('OIO_DISTRO', 'centos'),
+      'distro_ver': os.environ.get('OIO_DISTRO_VER', '7'),
+      'arch': os.environ.get('OIO_ARCH', 'x86_64'),
+  }
+
 def mock(distribution, rpm_options, srpmsdir):
   ret = os.system('/usr/bin/mock -r ' + distribution + ' ' + rpm_options + ' --rebuild ' + srpmsdir + '/*.src.rpm')
   if ret != 0:
@@ -304,20 +316,10 @@ def upload_http(url):
   if urlparsed.scheme != 'http':
     log('Cannot upload files using http since URI seems not to be a http protocol', 'ERROR')
 
-  today = datetime.date.today()
-  data = {
-      'company': os.environ.get('OIO_COMPANY', 'openio'),
-      'prod': os.environ.get('OIO_PROD', 'sds'),
-      'prod_ver': os.environ.get('OIO_PROD_VER', today.strftime("%y.%m")),
-      'distro': os.environ.get('OIO_DISTRO', 'centos'),
-      'distro_ver': os.environ.get('OIO_DISTRO_VER', '7'),
-      'arch': os.environ.get('OIO_ARCH', 'x86_64'),
-  }
-
   for lpath in glob.glob('/var/lib/mock/*/result/*.rpm'):
     with open(lpath, "rb") as fin:
         files = {"file": fin}
-        ret = requests.post(url, files=files, data=data)
+        ret = requests.post(url, files=files, data=get_repo_data())
         if ret.status_code != requests.codes.ok:
           log('Cannot upload package: ' + os.path.basename(lpath))
           log('to oiorepo: ' + url)
