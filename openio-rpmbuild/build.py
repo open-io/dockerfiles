@@ -279,7 +279,35 @@ def get_repo_data():
       'arch': os.environ.get('OIO_ARCH', 'x86_64'),
   }
 
-def mock(distribution, rpm_options, srpmsdir):
+def patch_mock_config(distribution):
+  '''Replace the baseurl in the mock configuration file pointing to the openio
+  mirror, so that it points to the currently being populated one.
+  This allows mock to find newly biuild packages that are depended upon.
+  '''
+  # FIXME: this is ugly (at least do it only if needed). What about doing it in ~/.config/mock.cfg
+  #        c.f.: https://github.com/rpm-software-management/mock/wiki#generate-custom-config-file
+  mock_cfg = '/etc/mock/' + distribution + '.cfg'
+  newlines = []
+  with open(mock_cfg, 'rb') as fin:
+    lines = fin.readlines()
+    for line in lines:
+      if line.startswith('baseurl=http://mirror.openio.io'):
+        repodata = get_repo_data()
+        repodata.update({'repo_ip': repo_ip, 'repo_port': '8080'})
+        newlines.append('baseurl=http://%(repo_ip)s:%(repo_port)s/pub/repo/%(company)s/%(prod)s/%(prod_ver)s/%(distro)s/%(distro_ver)s/%(arch)s/\n' % repodata)
+      elif line.startswith('gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-OPENIO-0'):
+        newlines.append('gpgkey=http://%(repo_ip)s:%(repo_port)s/pub/keyFile.pub\n' % {'repo_ip': repo_ip, 'repo_port': '8080'})
+      elif line.startswith('gpgcheck=1'):
+        newlines.append('gpgcheck=0\n')
+      else:
+        newlines.append(line)
+  with open(mock_cfg + '.new', 'wb') as fout:
+    fout.writelines(newlines)
+  os.rename(mock_cfg + '.new', mock_cfg)
+
+def mock(distribution, rpm_options, srpmsdir, upload_result):
+  if urlparse.urlparse(upload_result).scheme == 'http':
+    patch_mock_config(distribution)
   ret = os.system('/usr/bin/mock -r ' + distribution + ' ' + rpm_options + ' --rebuild ' + srpmsdir + '/*.src.rpm')
   if ret != 0:
     log('Failed to build packages.', 'ERROR')
@@ -433,7 +461,7 @@ def main():
   # Create the SRPM
   rpmbuild_bs(rpm_options, get_specfile())
   # Build the package
-  mock(distribution, rpm_options, srpmsdir)
+  mock(distribution, rpm_options, srpmsdir, upload_result)
   # List the resulting packages
   list_result()
   if key_ok:
