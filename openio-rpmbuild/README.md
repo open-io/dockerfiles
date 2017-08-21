@@ -91,12 +91,15 @@ You can upload the resulting packages using SCP:
 Or you can upload using http to an oiorepo flask web application:
 
 ```console
+OIO_REPO_IP=`ip -4 address show dev docker0 | awk '/inet / {print substr($2,0,index($2,"/") - 1)}'`
 # docker run -e UPLOAD_RESULT="http://${OIO_REPO_IP}:5000/package" \
+             -e OIO_PROD="sds" \
              -e OIO_PROD_VER="16.10" \
              -e OIO_DISTRO="centos" \
              -e OIO_DISTRO_VER="7" \
              -e OIO_ARCH="x86_64" \
-             -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec \
+             -e OIO_COMPANY="openio" \
+             -e OIO_PACKAGE="python-oiopy" \
              --privileged=true \
              -v local/lib/mock:/var/lib/mock \
              --rm \
