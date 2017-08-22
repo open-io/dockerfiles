@@ -350,7 +350,8 @@ def upload_http(url):
   for lpath in glob.glob('/var/lib/mock/*/result/*.rpm'):
     with open(lpath, "rb") as fin:
         files = {"file": fin}
-        ret = requests.post(url, files=files, data=get_repo_data())
+        data = get_repo_data()
+        ret = requests.post(url, files=files, data=data)
         if ret.status_code != requests.codes.ok:
           log('Cannot upload package: ' + os.path.basename(lpath))
           log('to oiorepo: ' + url)
