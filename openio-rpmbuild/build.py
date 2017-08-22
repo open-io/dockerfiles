@@ -282,14 +282,13 @@ def get_repo_data():
 def patch_mock_config(distribution):
   '''Replace the baseurl in the mock configuration file pointing to the openio
   mirror, so that it points to the currently being populated one.
-  This allows mock to find newly biuild packages that are depended upon.
+  This allows mock to find newly built packages that are depended upon.
   '''
-  # FIXME: this is ugly (at least do it only if needed). What about doing it in ~/.config/mock.cfg
-  #        c.f.: https://github.com/rpm-software-management/mock/wiki#generate-custom-config-file
   mock_cfg = '/etc/mock/' + distribution + '.cfg'
   newlines = []
   with open(mock_cfg, 'rb') as fin:
     lines = fin.readlines()
+    inopeniosection = False
     for line in lines:
       if line.startswith('baseurl=http://mirror.openio.io'):
         repodata = get_repo_data()
@@ -297,13 +296,16 @@ def patch_mock_config(distribution):
         newlines.append('baseurl=http://%(repo_ip)s:%(repo_port)s/pub/repo/%(company)s/%(prod)s/%(prod_ver)s/%(distro)s/%(distro_ver)s/%(arch)s/\n' % repodata)
       elif line.startswith('gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-OPENIO-0'):
         newlines.append('gpgkey=http://%(repo_ip)s:%(repo_port)s/pub/keyFile.pub\n' % {'repo_ip': repo_ip, 'repo_port': '8080'})
-      elif line.startswith('gpgcheck=1'):
+        inopeniosection = True
+      elif line.startswith('gpgcheck=1') and inopeniosection:
         newlines.append('gpgcheck=0\n')
       else:
         newlines.append(line)
-  with open(mock_cfg + '.new', 'wb') as fout:
+  if not os.path.exists('/home/builder/.config'):
+    os.mkdir('/home/builder/.config')
+  # Overrides global config with local one
+  with open('/home/builder/.config/mock.cfg', 'wb') as fout:
     fout.writelines(newlines)
-  os.rename(mock_cfg + '.new', mock_cfg)
 
 def mock(distribution, rpm_options, srpmsdir, upload_result):
   # FIXME: currently only doing this if uploading to oiorepo
