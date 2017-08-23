@@ -29,7 +29,7 @@ To access the `openio` command line, you can access inside the container (suppos
 
 ### Using host network interface
 
-You can start an instance using Docker host mode networking, it allows you to access the services outside your container. You cant specify the interface or the IP you want to use.
+You can start an instance using Docker host mode networking, it allows you to access the services outside your container. You can specify the interface or the IP you want to use.
 
 Setting the interface:
 ```console
@@ -56,6 +56,10 @@ Setting the default credentials to test Openstack Swift functionnal tests:
 # docker run -p 192.168.56.101:6007:6007 -e SWIFT_CREDENTIALS="admin:admin:admin:.admin .reseller_admin,test2:tester2:testing2:.admin,test5:tester5:testing5:service,test:tester:testing:.admin,test:tester3:testing" openio/sds
 ```
 
+Before using `openio` CLI or Python, Java or C API from the outside, copy the contents of `/etc/oio/sds.conf.d/OPENIO` from the container to the same file on your host.
+```console
+# docker exec -ti --tty $(docker ps -l --format "{{.ID}}") /bin/cat /etc/oio/sds.conf.d/OPENIO > /etc/oio/sds.conf.d/OPENIO
+```
 
 ## Documentation
 
