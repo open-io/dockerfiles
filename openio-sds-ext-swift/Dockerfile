@@ -2,7 +2,7 @@ FROM centos:7
 MAINTAINER "Romain Acciari" <romain.acciari@openio.io>
 
 ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/16.04/el/openio-sds-release-16.04-1.el.noarch.rpm
-ENV REPO_OPENSTACK https://repos.fedorapeople.org/repos/openstack/openstack-mitaka/rdo-release-mitaka-3.noarch.rpm
+ENV REPO_OPENSTACK https://repos.fedorapeople.org/repos/openstack/openstack-mitaka/rdo-release-mitaka-7.noarch.rpm
 ENV ADDITIONAL_PKGS puppet memcached
 #ENV PUPPET_PROFILE docker-ext-swift
 ENV PUPPET_PROFILE docker
