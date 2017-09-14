@@ -10,6 +10,10 @@ TIMEOUT=20
 # Initialize OpenIO cluster
 function initcluster(){
   echo "# Initializing the OpenIO cluster"
+
+  # Temporarily disabling the swift gateway, to avoid answering when not completely setup
+  sed -i -e 's/^enabled=.*$/enabled=false/' /etc/gridinit.d/OPENIO-oioswift-0
+
   echo "> Starting services"
   /usr/bin/gridinit -d /etc/gridinit.conf >/dev/null 2>&1
 
@@ -135,6 +139,9 @@ if [ ! -f /etc/oio/sds/firstboot ]; then
   # Firstboot is done
   touch /etc/oio/sds/firstboot
 fi
+
+# Re-enabling the swift gateway, now that it's ready
+sed -i -e 's/^enabled=.*$/enabled=true/' /etc/gridinit.d/OPENIO-oioswift-0
 
 # Start gridinit
 gridinit_start
