@@ -11,9 +11,7 @@ import shutil
 
 import rpm
 import requests
-import paramiko
 
-from scp import SCPClient
 from git import Repo
 
 # Static
@@ -23,7 +21,6 @@ specdir = rpmbuilddir + '/SPECS'
 sourcedir = specdir
 srpmsdir = rpmbuilddir + '/SRPMS'
 rpmmacros_path = homedir + '/.rpmmacros'
-packagecloud_config = homedir + '/.packagecloud'
 tmpdir = '/tmp'
 gitraw = "https://raw.githubusercontent.com"
 github_prefix = "https://github.com/"
@@ -324,15 +321,10 @@ def sign_rpms():
 
 def upload(url):
   urlparsed = urlparse.urlparse(url)
-  if urlparsed.scheme == 'scp':
-    return upload_scp(url)
-  if urlparsed.scheme == 'packagecloud':
-    return upload_pc(url)
   if urlparsed.scheme == 'http':
     return upload_http(url)
   log('URL scheme ' + urlparsed.scheme + ' not supported.')
   return False
-
 
 def upload_http(url):
   '''Upload packages to an oiorepo web application'''
@@ -356,94 +348,6 @@ def upload_http(url):
           log(ret.text)
           ret.raise_for_status()
 
-
-def upload_scp(url):
-  # scp://host/remote_path/?port=22&username=user&password=passwd || packagecloud://user/
-  log('Uploading files using SCP')
-  urlparsed = urlparse.urlparse(url)
-  if urlparsed.scheme != 'scp':
-    log('Cannot upload files using scp since URI seems not to be a scp protocol', 'ERROR')
-  host = urlparsed.netloc
-  rpath = urlparsed.path.lstrip('/')
-  query = urlparse.parse_qs(urlparsed.query)
-  if query.get('username'):
-    user = query['username'][0]
-  else:
-    user = None
-  if query.get('password'):
-    passwd = query['password'][0]
-  else:
-    passwd = None
-  if query.get('port'):
-    port = query['port'][0]
-  else:
-    port = 22
-  try:
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.load_system_host_keys()
-    ssh.connect(hostname=host, port=port, username=user, password=passwd)
-    scp = SCPClient(ssh.get_transport())
-  except Exception, e:
-    log('Failed to create connection to ' + host)
-    log('Exception :' + str(e), 'ERROR')
-  for lpath in glob.glob('/var/lib/mock/*/result/*.rpm'):
-    try:
-      scp.put(lpath, rpath)
-    except Exception, e:
-      log('Failed to upload file ' + lpath + ' to ' + host + ':' + rpath)
-      log('Exception :' + str(e), 'ERROR')
-
-def pc_config(token):
-  try:
-    log('Configure Package Cloud token')
-    with open(packagecloud_config, 'w') as pc_config:
-      pc_config.write(token)
-    return True
-  except Exception, e:
-    log('Failed to set token  in ' + packagecloud_config, 'ERROR')
-
-def upload_pc(url):
-  # packagecloud://user/repo/distro/distro_server?token='{"url":"https://packagecloud.io","token":"763ba46554b1a31e1c9ab7a148a74440d43a22a7eb6112a9"}'
-  urlparsed = urlparse.urlparse(url)
-  query = urlparse.parse_qs(urlparsed.query)
-  splitted_path = (urlparsed.path.strip('/')).split('/')
-  user = urlparsed.netloc
-  if len(splitted_path) == 3:
-    repo, distro, distro_version = splitted_path
-  if len(splitted_path) == 1:
-    repo = splitted_path[0]
-    distro, distro_version = mock2pc_dist()
-  if query.get('token'):
-    token = query['token'][0]
-  if not 'token' in locals():
-    log('Package Cloud upload required a token to push packages')
-    return False
-  if not pc_config(token):
-    return False
-  log('Uploading files to Package Cloud ' + user + '/' + repo + '/' + distro + '/' + distro_version)
-  for lpath in glob.glob('/var/lib/mock/*/result/*.rpm'):
-    try:
-      log('Uploading file ' + lpath)
-      ret = os.system('LANG=en_US.UTF-8 /usr/local/bin/package_cloud push ' + user + '/' + repo + '/' + distro + '/' + distro_version + ' ' + lpath)
-      if ret != 0:
-        log('Failed to upload package ' + lpath + ' to Package Cloud to ' + user + '/' + repo + '/' + distro + '/' + distro_version, 'ERROR')
-    except Exception, e:
-      log('Failed to push file ' + lpath + ' to Package Cloud ' + user + '/' + repo + '/' + distro + '/' + distro_version)
-      log('Exception :' + str(e), 'ERROR')
-  log('Upload to Package Cloud ended successfully.')
-
-def mock2pc_dist():
-  splitted_distribution = distribution.split('-')
-  if len(splitted_distribution) == 4:
-    dist, distvers, _, _ = splitted_distribution
-  else:
-    dist, distvers, _ = splitted_distribution
-  if dist == 'epel':
-    distro = 'el'
-  else:
-    distro = dist
-  return distro, distvers
 
 def main():
   set_rpm_options()
