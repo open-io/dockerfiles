@@ -285,7 +285,6 @@ def patch_mock_config(distribution):
   newlines = []
   with open(mock_cfg, 'rb') as fin:
     lines = fin.readlines()
-    inopeniosection = False
     for line in lines:
       if line.startswith('baseurl=http://mirror.openio.io'):
         repodata = get_repo_data()
