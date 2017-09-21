@@ -13,7 +13,7 @@ RUN dnf -y install \
     rpmdevtools \
     rpmlint
 
-RUN dnf -y install http://mirror2.openio.io/pub/repo/openio/sds/current/centos/7/x86_64/mock-config-openio-16.10.0-1.el7.oio.noarch.rpm
+RUN dnf -y install http://mirror.openio.io/pub/repo/openio/sds/17.04/el/7/x86_64/mock-config-openio-17.04.0-1.el7.oio.noarch.rpm
 
 # /var/lib/mock allows you to access build chroot and packaging result
 # /var/cache/mock allows you to use a shared cache on your host
