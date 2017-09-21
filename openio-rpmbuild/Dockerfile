@@ -8,19 +8,12 @@ RUN dnf -y install \
     GitPython \
     gpg \
     python-boto \
-    python-paramiko \
     python-requests \
-    python-scp \
     rpm-sign \
     rpmdevtools \
-    rpmlint \
-    ruby-devel \
-    rubygem-bundler \
-    rubygem-json \
-    rubygems
+    rpmlint
 
 RUN dnf -y install http://mirror2.openio.io/pub/repo/openio/sds/current/centos/7/x86_64/mock-config-openio-16.10.0-1.el7.oio.noarch.rpm
-RUN gem install package_cloud
 
 # /var/lib/mock allows you to access build chroot and packaging result
 # /var/cache/mock allows you to use a shared cache on your host
