@@ -1,6 +1,7 @@
 FROM centos:7
 
-RUN yum install -y epel-release
+RUN yum install -y epel-release \
+    yum update -y
 
 # Test installing a package from the repository
 
