@@ -3,6 +3,7 @@
 version: "3"
 
 services:
+
   oio-repo:
     image: openio/repo
     deploy:
@@ -12,17 +13,20 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - /home/build/pub:/oiorepodestdir
+      - /mnt/koji/mirror/pub/repo:/oiorepodestdir
       - /home/build/repo/dockerfiles/openio-repo/openio-repo/test/keyFile:/root/keyFile:ro
+
+  # This was used for testing, production setup is to use mirror2.openio.io (aka webservices)
   front:
     image: openio/repo-front
     deploy:
-      replicas: 5
+      replicas: 0
       restart_policy:
         condition: on-failure
     ports:
       - "8080:80"
     volumes:
-      - /home/build/pub:/usr/share/nginx/html/pub/repo:ro
+      - /mnt/koji/mirror/pub:/usr/share/nginx/html/pub/repo:ro
       - /home/build/repo/dockerfiles/openio-repo/openio-repo/test/keyFile.pub:/usr/share/nginx/html/pub/keyFile.pub:ro
 
+...
