@@ -17,6 +17,7 @@ RUN sed -i -e 's/\$releasever/7.3.1611/g' -e 's/^mirrorlist/#mirrorlist/g' -e 's
   && yum -y --disableplugin=fastestmirror update \
   && yum -y --disableplugin=fastestmirror install puppet-openio-sds-profile ${ADDITIONAL_PKGS} \
   && /usr/share/puppet/modules/openiosds/profiles/install.sh ${PUPPET_PROFILE} \
+  && rm -rf /var/cache/yum \
   && yum clean all
 VOLUME ["/var/lib/oio"]
 ADD openio-docker-init.sh /
