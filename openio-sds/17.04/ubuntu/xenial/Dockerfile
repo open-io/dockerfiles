@@ -5,6 +5,9 @@ ENV OIOSDS_RELEASE 17.04
 ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/${OIOSDS_RELEASE}/ubuntu
 ENV PUPPET_PROFILE docker
 
+# Shut up "debconf: unable to initialize frontend: Readline"
+ENV DEBIAN_FRONTEND noninteractive
+
 RUN apt-get update
 RUN apt-get install -y curl wget
 
