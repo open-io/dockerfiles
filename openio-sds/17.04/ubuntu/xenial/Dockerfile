@@ -20,7 +20,7 @@ RUN add-apt-repository -y cloud-archive:ocata
 # Install and configure OpenIO
 RUN curl "http://mirror.openio.io/pub/repo/openio/APT-GPG-KEY-OPENIO-0" | apt-key add -
 RUN echo "deb ${REPO_OPENIO} xenial/" > /etc/apt/sources.list.d/oio-sds.list
-RUN apt clean all
+RUN apt-get clean all
 RUN apt-get update
 RUN apt-get install -y puppet-module-openio-openiosds
 
