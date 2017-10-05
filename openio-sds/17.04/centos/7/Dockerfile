@@ -4,6 +4,7 @@ MAINTAINER "Romain Acciari" <romain.acciari@openio.io>
 ENV OIOSDS_RELEASE 17.04
 ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/${OIOSDS_RELEASE}/el/openio-sds-release-${OIOSDS_RELEASE}-1.el.noarch.rpm
 ENV PUPPET_PROFILE docker
+ENV PUPPETOPTS --color=none
 
 # Install and configure OpenIO
 RUN yum clean all \

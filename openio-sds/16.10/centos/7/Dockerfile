@@ -4,6 +4,7 @@ MAINTAINER "Romain Acciari" <romain.acciari@openio.io>
 ENV OIOSDS_RELEASE 16.10
 ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/${OIOSDS_RELEASE}/el/openio-sds-release-${OIOSDS_RELEASE}-1.el.noarch.rpm
 ENV PUPPET_PROFILE docker
+ENV PUPPETOPTS --color=none
 
 # Force the mirror definitions to point to the 7.3.1611 subdirectory, as for
 # CentOS-Base the default is still to use $releasever (which is just "7")

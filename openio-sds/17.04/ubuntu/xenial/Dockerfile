@@ -4,6 +4,7 @@ MAINTAINER "Romain Acciari" <romain.acciari@openio.io>
 ENV OIOSDS_RELEASE 17.04
 ENV REPO_OPENIO http://mirror.openio.io/pub/repo/openio/sds/${OIOSDS_RELEASE}/ubuntu
 ENV PUPPET_PROFILE docker
+ENV PUPPETOPTS --color=none
 
 RUN apt-get update
 RUN apt-get install -y curl wget
