@@ -38,7 +38,7 @@ RUN mkdir -p /run/gridinit \
 
 # Install OpenIO SDS
 RUN /usr/share/puppet/modules/openiosds/profiles/install.sh ${PUPPET_PROFILE} \
-  && yum clean all
+  && apt-get clean
 
 VOLUME ["/var/lib/oio/sds/OPENIO"]
 ADD openio-docker-init.sh /
