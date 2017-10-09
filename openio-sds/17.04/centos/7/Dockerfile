@@ -14,7 +14,7 @@ RUN yum clean all \
   && /usr/share/puppet/modules/openiosds/profiles/install.sh ${PUPPET_PROFILE} \
   && rm -rf /var/cache/yum \
   && yum clean all
-VOLUME ["/var/lib/oio"]
+VOLUME ["/var/lib/oio/sds/OPENIO"]
 ADD openio-docker-init.sh /
 EXPOSE 6007
 CMD ["/openio-docker-init.sh"]

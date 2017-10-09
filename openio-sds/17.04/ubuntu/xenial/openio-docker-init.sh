@@ -98,14 +98,19 @@ function update_swift_credentials(){
   fi
 }
 
+function prepare(){
+  /usr/bin/rm -f /run/oio/sds/*
+  mkdir -p /run/oio/sds
+  chown openio.openio /run/oio /run/oio/sds
+  chmod 750 /run/oio /run/oio/sds
+  mkdir -p /var/lib/oio/sds/OPENIO/{beanstalkd-0,coredump,ecd-0,meta0-0,meta1-0,meta2-0,rawx-0,rdir-0,redis-0}
+  chown openio.openio /var/lib/oio/sds/OPENIO /var/lib/oio/sds/OPENIO/{beanstalkd-0,coredump,ecd-0,meta0-0,meta1-0,meta2-0,rawx-0,rdir-0,redis-0}
+}
+
 
 ### Main
 
-# Clean
-/usr/bin/rm -f /run/oio/sds/*
-mkdir -p /run/oio/sds
-chown openio.openio /run/oio /run/oio/sds
-chmod 750 /run/oio /run/oio/sds
+prepare
 
 # Firstboot script to setup OpenIO configuration
 if [ ! -f /etc/oio/sds/firstboot ]; then
