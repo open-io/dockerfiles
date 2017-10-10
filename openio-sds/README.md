@@ -3,6 +3,52 @@
 This image provides an easy way to run an OPENIO namespace with an Openstack Swift/Swift3 proxy.
 It deploys and configure a simple non-replicated namespace in a single Docker container.
 
+## How to get this image from the hub
+
+To get the latest one built on the [docker hub](https://hub.docker.com/r/openio/sds) 
+
+```console
+# docker pull openio/sds
+```
+
+or
+
+```console
+# docker pull openio/sds:latest
+```
+
+If you want a specific OpenIO SDS version & linux distribution
+
+For example, run:
+
+```console
+# docker pull openio/sds:16.10-centos-7
+```
+
+You can choose between:
+
+- 16.10-centos-7
+- 17.04-centos-7
+- 17.04-ubuntu-xenial
+
+Those images are rebuilt regularly, but if you want to have the most up-to-date
+versions, the best is to rebuild them locally (on your computer).
+
+## How to (re-)build this image
+
+First get the source:
+
+```console
+# git clone https://github.com/open-io/dockerfiles.git
+# cd dockerfiles
+```
+
+Then build one specific image:
+
+```console
+# docker build -t openio/sds:17.04-centos-7-local openio-sds/17.04/centos/7
+```
+
 ## How to use this image
 
 OpenIO SDS depends on IPs, meaning that you can't change service IPs after they have been registered to the cluster.
