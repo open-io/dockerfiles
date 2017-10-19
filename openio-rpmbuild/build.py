@@ -300,8 +300,9 @@ def patch_mock_config(distribution):
 
 def mock(distribution, rpm_options, srpmsdir, upload_result):
   # FIXME: currently only doing this if uploading to oiorepo
-  if urlparse.urlparse(upload_result).scheme == 'http':
-    patch_mock_config(distribution)
+  if upload_result:
+      if urlparse.urlparse(upload_result).scheme == 'http':
+        patch_mock_config(distribution)
   ret = os.system('/usr/bin/mock -r ' + distribution + ' ' + rpm_options + ' --rebuild ' + srpmsdir + '/*.src.rpm')
   if ret != 0:
     log('Failed to build packages.', 'ERROR')
