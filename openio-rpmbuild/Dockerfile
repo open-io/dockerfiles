@@ -2,7 +2,8 @@ FROM fedora:22
 
 MAINTAINER Romain Acciari <romain.acciari@openio.io>
 
-RUN dnf -y install \
+RUN dnf -y update && \
+    dnf -y install \
     mock \
     git \
     GitPython \
