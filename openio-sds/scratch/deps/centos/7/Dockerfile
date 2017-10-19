@@ -7,7 +7,7 @@ RUN yum clean all \
   && rm -rf /var/cache/yum \
   && yum clean all \
   && yum -y --disableplugin=fastestmirror update \
-  && yum -y --disableplugin=fastestmirror install puppet-openio-sds-profile ${ADDITIONAL_PKGS} \
+  && yum -y --disableplugin=fastestmirror install puppet-openio-sds-profile \
   && yum -y --disableplugin=fastestmirror install \
     screen cmake make flex bison lcov git gcc gcc-c++ \
     glib2 glib2-devel \
