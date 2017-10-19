@@ -11,13 +11,13 @@ The container should run in [*privileged mode*](http://blog.docker.com/2013/09/d
 To build a package, you must specify at least a RPM specfile through the SPECFILE environment variable.  
 
 ```console
-# docker run -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true --rm openio/rpmbuild
+# docker run -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/json-c/json-c.spec --privileged=true --rm openio/rpmbuild
 ```
 
 Default distribution is *epel-7-x86_64*, get the full list in the [Mock source](http://pkgs.fedoraproject.org/cgit/mock.git/). Specify the *DISTRIBUTION* environment variable choose another:  
 
 ```console
-# docker run -e DISTRIBUTION=fedora-22-x86_64 -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true --rm openio/rpmbuild
+# docker run -e DISTRIBUTION=fedora-22-x86_64 -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/json-c/json-c.spec --privileged=true --rm openio/rpmbuild
 ```
 
 
@@ -60,7 +60,7 @@ This image allows you to bind a local directory or another container to keep the
 ```
 
 ```console
-# docker run -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true --rm --volumes-from rpmbuild-cache-container openio/rpmbuild
+# docker run -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/json-c/json-c.spec --privileged=true --rm --volumes-from rpmbuild-cache-container openio/rpmbuild
 ```
 To access the cache:  
 
@@ -78,14 +78,14 @@ Create a local directory:
 ```
 
 ```console
-# docker run -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true -v local/lib/mock:/var/lib/mock --rm openio/rpmbuild
+# docker run -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/json-c/json-c.spec --privileged=true -v "$(pwd)"/local/lib/mock:/var/lib/mock --rm openio/rpmbuild
 ```
 
 ### Upload resulting packages
 You can upload the resulting packages using SCP:  
 
 ```console
-# docker run -e UPLOAD_RESULT="scp://host/remote_path/?port=22&username=user&password=passwd" -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true -v local/lib/mock:/var/lib/mock --rm openio/rpmbuild
+# docker run -e UPLOAD_RESULT="scp://host/remote_path/?port=22&username=user&password=passwd" -e SPECFILE=https://raw.githubusercontent.com/open-io/rpm-specfiles/master/python-oiopy/python-oiopy.spec --privileged=true -v "$(pwd)"/local/lib/mock:/var/lib/mock --rm openio/rpmbuild
 ```
 
 Or you can upload using http to an oiorepo flask web application:
@@ -102,7 +102,7 @@ OIO_REPO_IP=`ip -4 address show dev docker0 | awk '/inet / {print substr($2,0,in
              -e OIO_COMPANY="openio" \
              -e OIO_PACKAGE="python-oiopy" \
              --privileged=true \
-             -v local/lib/mock:/var/lib/mock \
+             -v "$(pwd)"/local/lib/mock:/var/lib/mock \
              --rm \
              openio/rpmbuild
 ```
