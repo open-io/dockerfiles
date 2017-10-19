@@ -26,10 +26,12 @@ RUN yum clean all \
     zookeeper zookeeper-lib zookeeper-lib-devel \
     beanstalkd redis hiredis hiredis-devel \
     openio-gridinit openio-asn1c \
+    rsyslog \
   && rm -rf /var/cache/yum \
   && yum clean all \
   && pip install --upgrade pip tox virtualenv zkpython \
-  && useradd -U -m -G users,wheel openio
+  && useradd -U -m -G users,wheel openio \
+  && echo '$AddUnixListenSocket /dev/log' >> /etc/rsyslog.conf
 
 CMD ["/usr/bin/env", "bash"]
 
