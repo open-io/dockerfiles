@@ -322,7 +322,7 @@ def upload_http(url):
   log('Uploading files using HTTP')
   urlparsed = urlparse.urlparse(url)
   if urlparsed.scheme != 'http':
-    log('Cannot upload files using http since URI seems not to be a http protocol', 'ERROR')
+    log('Cannot upload files using http since URI seems not to be a http protocol: %s' % urlparsed.scheme, 'ERROR')
 
   for lpath in glob.glob('/var/lib/mock/*/result/*.rpm'):
     with open(lpath, "rb") as fin:
