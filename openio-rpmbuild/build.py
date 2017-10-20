@@ -315,8 +315,10 @@ def sign_rpms():
     log('Failed to sign packages.')
 
 def upload_http(url):
-  '''Upload packages to an oiorepo web application'''
-  # http://127.0.0.1:5000/package
+  '''
+      Upload packages to an oiorepo web application:
+      http://${OIO_REPO_HOST}:${OIO_REPO_PORT}/package
+  '''
   log('Uploading files using HTTP')
   urlparsed = urlparse.urlparse(url)
   if urlparsed.scheme != 'http':
