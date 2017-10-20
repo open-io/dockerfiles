@@ -345,9 +345,9 @@ def main():
   # Download the specfile if not already present
   if not get_specfile():
     download_specfile(specfile, specdir)
-  # Check and download files using spectool
-  #download_sources(sources, sourcedir)
+  # Download additionnal sources
   download_sources()
+  # Check and download files using spectool
   spectool(rpm_options, get_specfile())
   # Create the SRPM
   rpmbuild_bs(rpm_options, get_specfile())
