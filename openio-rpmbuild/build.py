@@ -74,7 +74,7 @@ def log(msg, level='INFO'):
   }
   try:
     switch.get(level)(msg)
-  except Exception, e:
+  except Exception:
     log_error('Failed to log msg ' + msg)
 
 rpmmacro_sign = """
@@ -104,7 +104,7 @@ def set_sourcedir(srcdir=sourcedir, macros_path=rpmmacros_path):
     log('Setting %_sourcedir to ' + srcdir)
     with open(macros_path, 'w') as rpmmacros:
       rpmmacros.write('%_sourcedir ' + srcdir + '\n')
-  except Exception, e:
+  except Exception:
     log('Failed to set macro %_sourcedir', 'ERROR')
 
 def get_specfile():
@@ -126,7 +126,7 @@ def download_file(url, path):
       for chunk in request.iter_content(1024 * 1024):
         fh.write(chunk)
       fh.close()
-  except Exception, e:
+  except Exception:
     log('Failed to download file ' + url, 'ERROR')
 
 def url_strip_query_fragment(url):
@@ -167,7 +167,7 @@ def clean_git_repo(directory):
   try:
     shutil.rmtree(directory + '/.git')
     os.remove(directory + '/.gitignore')
-  except Exception, e:
+  except Exception:
     log('Failed to remove git files in ' + directory)
 
 
@@ -185,7 +185,7 @@ def create_archive(archive, source, arcname=None, clean=True):
   if clean:
     try:
       shutil.rmtree(source)
-    except Exception, e:
+    except Exception:
       log('Failed to remove directory ' + source)
 
 def set_specdir(spcdir=''):
