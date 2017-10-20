@@ -316,13 +316,6 @@ def sign_rpms():
   if ret != 0:
     log('Failed to sign packages.')
 
-def upload(url):
-  urlparsed = urlparse.urlparse(url)
-  if urlparsed.scheme == 'http':
-    return upload_http(url)
-  log('URL scheme ' + urlparsed.scheme + ' not supported.')
-  return False
-
 def upload_http(url):
   '''Upload packages to an oiorepo web application'''
   # http://127.0.0.1:5000/package
@@ -367,7 +360,7 @@ def main():
   if key_ok:
     sign_rpms()
   if upload_result:
-    upload(upload_result)
+    upload_http(upload_result)
 
 
 if __name__ == "__main__":
