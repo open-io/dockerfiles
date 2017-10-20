@@ -52,9 +52,6 @@ oio_package = os.environ.get('OIO_PACKAGE')
 if not specfile and oio_package:
   specfile = "%s/%s/%s/%s/%s/%s.spec" % (gitraw, gitaccount, repo_name, branch, oio_package, oio_package)
 
-def usage():
-  print 'Usage: SPECFILE=http://example.com/myspecfile.spec build.py'
-
 def splitext(path):
   '''Variant of os.path.splitext(path) that handles tar file extensions'''
   for ext in ['.tar.gz', '.tar.bz2', '.tar.xz']:
