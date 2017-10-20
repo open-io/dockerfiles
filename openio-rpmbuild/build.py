@@ -37,6 +37,7 @@ repo_name = os.environ.get('GIT_REPO_NAME', 'rpm-specfiles')
 branch = os.environ.get('GIT_BRANCH', 'master')
 gitremote = os.environ.get('GIT_REMOTE')
 repo_ip = os.environ.get('OIO_REPO_IP')
+repo_port = os.environ.get('OIO_REPO_PORT', '80')
 
 gitaccount = 'open-io'
 if gitremote:
@@ -285,7 +286,7 @@ def patch_mock_config(distribution):
     for line in lines:
       if line.startswith('baseurl=http://mirror.openio.io'):
         repodata = get_repo_data()
-        repodata.update({'repo_ip': repo_ip, 'repo_port': '8080'})
+        repodata.update({'repo_ip': repo_ip, 'repo_port': repo_port})
         newlines.append('baseurl=http://%(repo_ip)s:%(repo_port)s/pub/repo/%(company)s/%(prod)s/%(prod_ver)s/%(distro)s/%(distro_ver)s/%(arch)s/\n' % repodata)
       else:
         newlines.append(line)
