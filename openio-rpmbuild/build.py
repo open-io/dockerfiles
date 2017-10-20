@@ -80,7 +80,7 @@ def log(msg, level='INFO'):
 
 rpmmacro_sign = """
 %_signature gpg
-%_gpg_name  vl@t.com
+%_gpg_name  ops@openio.io
 %_gpg_path  %(echo $HOME)/.gnupg
 """
 
