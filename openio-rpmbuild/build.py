@@ -5,6 +5,7 @@ import os
 import re
 import glob
 import urlparse
+import subprocess
 import datetime
 import tarfile
 import shutil
@@ -50,8 +51,9 @@ if gitremote:
 
 # If we're only given a package name, infer the corresponding github url
 oio_package = os.environ.get('OIO_PACKAGE')
+specfile_url_base = "%s/%s/%s/%s/%s" % (gitraw, gitaccount, repo_name, branch, oio_package)
 if not specfile and oio_package:
-  specfile = "%s/%s/%s/%s/%s/%s.spec" % (gitraw, gitaccount, repo_name, branch, oio_package, oio_package)
+  specfile = "%s/%s.spec" % (specfile_url_base, oio_package)
 
 def splitext(path):
   '''Variant of os.path.splitext(path) that handles tar file extensions'''
@@ -252,6 +254,25 @@ def download_sources():
       else:
         download_file(stripped_url, sourcedir + '/' + os.path.basename(urlparsed.path))
 
+# Match "SourceXX:" lines from specfile
+re_source = re.compile(r'^\s*Source(?P<srcnum>\d*)\s*:\s*(?P<srcloc>.+)\s*$')
+
+def get_companion_sources(local_specfile):
+  """
+      Download local "SourceXX" files specified in the specfile, if they are not
+      an URL, i.e. they are located in the same location as the specfile itself
+  """
+  # Use spectool to list files, handling "%{...}" macro substitutions properly
+  cmd = ['spectool', '--list-files', local_specfile]
+  output = subprocess.check_output(cmd)
+
+  for line in output.splitlines():
+    rem = re_source.match(line.strip())
+    if rem:
+      srcloc = rem.group('srcloc')
+      if not srcloc.startswith('http'):
+        download_file(specfile_url_base + '/' + srcloc, specdir + '/' + srcloc)
+
 def spectool(rpm_options, specfile):
   ret = os.system('/usr/bin/spectool -g -S -R ' + rpm_options + ' ' + specfile)
   if ret != 0:
@@ -353,6 +374,9 @@ def main():
   download_sources()
   # Check and download files using spectool
   spectool(rpm_options, get_specfile())
+  # Download "SourceXX" files located alongside the specfile
+  local_specfile = specdir + '/' + os.path.basename(specfile)
+  get_companion_sources(local_specfile)
   # Create the SRPM
   rpmbuild_bs(rpm_options, get_specfile())
   # Build the package
