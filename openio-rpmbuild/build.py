@@ -126,7 +126,6 @@ def download_file(url, path):
     with open(path, 'wb') as fh:
       for chunk in request.iter_content(1024 * 1024):
         fh.write(chunk)
-      fh.close()
   except Exception:
     log('Failed to download file ' + url, 'ERROR')
 
