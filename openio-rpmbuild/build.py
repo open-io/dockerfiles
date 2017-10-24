@@ -88,7 +88,8 @@ rpmmacro_sign = """
 
 def set_keyfile():
   if keyfile and os.path.exists(keyfile):
-    ret = os.system('gpg --import ' + keyfile)
+    cmd = ['gpg', '--import', keyfile]
+    ret = subprocess.call(' '.join(cmd))
     if ret != 0:
       log("Failed to import the GPG private key, your packages won't be signed.")
       return False
@@ -274,12 +275,14 @@ def get_companion_sources(local_specfile):
         download_file(specfile_url_base + '/' + srcloc, specdir + '/' + srcloc)
 
 def spectool(rpm_options, specfile):
-  ret = os.system('/usr/bin/spectool -g -S -R ' + rpm_options + ' ' + specfile)
+  cmd = ['/usr/bin/spectool', '-g', '-S', '-R', rpm_options, specfile]
+  ret = subprocess.call(' '.join(cmd))
   if ret != 0:
     log('Failed to get source files.', 'ERROR')
 
 def rpmbuild_bs(rpm_options, specfile):
-  ret = os.system('/usr/bin/rpmbuild -bs --nodeps ' + rpm_options + ' ' + specfile)
+  cmd = ['/usr/bin/rpmbuild', '-bs', '--nodeps', rpm_options, specfile]
+  ret = subprocess.call(' '.join(cmd))
   if ret != 0:
     log('Failed to create SRPM package.', 'ERROR')
 
@@ -319,7 +322,8 @@ def patch_mock_config(distribution):
 def mock(distribution, rpm_options, srpmsdir, upload_result):
   # FIXME: currently only doing this if uploading to oiorepo
   patch_mock_config(distribution)
-  ret = os.system('/usr/bin/mock -r ' + distribution + ' ' + rpm_options + ' --rebuild ' + srpmsdir + '/*.src.rpm')
+  cmd = ['/usr/bin/mock', '-r', distribution, rpm_options, '--rebuild', srpmsdir + '/*.src.rpm']
+  ret = subprocess.call(' '.join(cmd))
   if ret != 0:
     log('Failed to build packages.', 'ERROR')
 
@@ -331,7 +335,8 @@ def list_result():
 def sign_rpms():
   log('Signing generated files')
   cmd = ['rpmsign', '--addsign'] + glob.glob('/var/lib/mock/*/result/*.rpm')
-  ret = os.system(' '.join(cmd))
+  ret = subprocess.call(' '.join(cmd))
+
   if ret != 0:
     log('Failed to sign packages.')
 
