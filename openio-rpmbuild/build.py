@@ -72,6 +72,7 @@ specfile_url_base = "%s/%s/%s/%s/%s" % (gitraw, gitaccount, repo_name, branch, o
 if not specfile and oio_package:
   specfile = "%s/%s.spec" % (specfile_url_base, oio_package)
 
+
 def splitext(path):
   '''Variant of os.path.splitext(path) that handles tar file extensions'''
   for ext in ['.tar.gz', '.tar.bz2', '.tar.xz']:
@@ -79,12 +80,15 @@ def splitext(path):
       return path[:-len(ext)], path[-len(ext):]
   return os.path.splitext(path)
 
+
 def log_error(msg):
   print 'ERROR: ' + msg
   exit(1)
 
+
 def log_info(msg):
   print 'INFO: ' + msg
+
 
 def log(msg, level='INFO'):
   switch = {
@@ -96,6 +100,7 @@ def log(msg, level='INFO'):
     switch.get(level)(msg)
   except Exception:
     log_error('Failed to log msg ' + msg)
+
 
 def set_keyfile():
   """
@@ -118,6 +123,7 @@ def set_keyfile():
       log(str(e), 'ERROR')
   return False
 
+
 def set_sourcedir(srcdir=sourcedir, macros_path=rpmmacros_path):
   try:
     log('Setting %_sourcedir to ' + srcdir)
@@ -126,14 +132,17 @@ def set_sourcedir(srcdir=sourcedir, macros_path=rpmmacros_path):
   except Exception:
     log('Failed to set macro %_sourcedir', 'ERROR')
 
+
 def get_specfile():
   files = glob.glob(specdir + '/*.spec')
   if files:
     return files[0]
   return False
 
+
 def is_git(url):
   return re.match('.*\\.git$', urlparse.urlparse(url).path)
+
 
 def download_file(url, path):
   try:
@@ -147,9 +156,11 @@ def download_file(url, path):
   except Exception:
     log('Failed to download file ' + url, 'ERROR')
 
+
 def url_strip_query_fragment(url):
   urlparsed = urlparse.urlparse(url)
   return urlparse.urlunsplit((urlparsed.scheme, urlparsed.netloc, urlparsed.path, '', ''))
+
 
 def git_clone(url, destdir, branch='master', commit=None, clean=True, archive=None, arcname=None):
   try:
@@ -181,6 +192,7 @@ def git_clone(url, destdir, branch='master', commit=None, clean=True, archive=No
         log('Failed to copy file ' + filename + ' to ' + destdir)
         log('Exception :' + str(e), 'ERROR')
 
+
 def clean_git_repo(directory):
   try:
     shutil.rmtree(directory + '/.git')
@@ -206,6 +218,7 @@ def create_archive(archive, source, arcname=None, clean=True):
     except Exception:
       log('Failed to remove directory ' + source)
 
+
 def set_specdir(spcdir=''):
   global specdir
   if spcdir:
@@ -215,6 +228,7 @@ def set_specdir(spcdir=''):
     set_sourcedir(new_specdir)
   log('Setting specfile workdir to ' + new_specdir)
   specdir = new_specdir
+
 
 def download_specfile(url, directory):
   urlparsed = urlparse.urlparse(url)
@@ -231,16 +245,19 @@ def download_specfile(url, directory):
   else:
     download_file(stripped_url, directory + '/' + os.path.basename(urlparsed.path))
 
+
 def set_rpm_options():
   if specfile_tag:
     global rpm_options
     rpm_options = "--define '_with_test 1' --define 'tag " + specfile_tag + "'"
+
 
 def get_rpmts():
   if specfile_tag:
     rpm.addMacro('_with_test', '1')
     rpm.addMacro('tag', specfile_tag)
   return rpm.TransactionSet()
+
 
 def download_sources():
   if sources:
@@ -270,8 +287,10 @@ def download_sources():
       else:
         download_file(stripped_url, sourcedir + '/' + os.path.basename(urlparsed.path))
 
+
 # Match "SourceXX:" lines from specfile
 re_source = re.compile(r'^\s*Source(?P<srcnum>\d*)\s*:\s*(?P<srcloc>.+)\s*$')
+
 
 def get_companion_sources(local_specfile):
   """
@@ -289,17 +308,20 @@ def get_companion_sources(local_specfile):
       if not srcloc.startswith('http'):
         download_file(specfile_url_base + '/' + srcloc, specdir + '/' + srcloc)
 
+
 def spectool(rpm_options, specfile):
   cmd = [_SPECTOOL, '-g', '-S', '-R', rpm_options, specfile]
   ret = subprocess.call(' '.join(cmd))
   if ret != 0:
     log('Failed to get source files.', 'ERROR')
 
+
 def rpmbuild_bs(rpm_options, specfile):
   cmd = [_RPMBUILD, '-bs', '--nodeps', rpm_options, specfile]
   ret = subprocess.call(' '.join(cmd))
   if ret != 0:
     log('Failed to create SRPM package.', 'ERROR')
+
 
 def get_repo_data():
   today = datetime.date.today()
@@ -311,6 +333,7 @@ def get_repo_data():
       'distro_ver': os.environ.get('OIO_DISTRO_VER', '7'),
       'arch': os.environ.get('OIO_ARCH', 'x86_64'),
   }
+
 
 def patch_mock_config(distribution, upload_result):
   '''Replace the baseurl in the mock configuration file pointing to the openio
@@ -334,6 +357,7 @@ def patch_mock_config(distribution, upload_result):
   with open('/home/builder/.config/mock.cfg', 'wb') as fout:
     fout.writelines(newlines)
 
+
 def mock(distribution, rpm_options, srpmsdir, upload_result):
   # FIXME: currently only doing this if uploading to oiorepo
   patch_mock_config(distribution, upload_result)
@@ -342,10 +366,12 @@ def mock(distribution, rpm_options, srpmsdir, upload_result):
   if ret != 0:
     log('Failed to build packages.', 'ERROR')
 
+
 def list_result():
   log('Listing generated files:')
   for path in glob.glob('/var/lib/mock/*/result/*.rpm'):
     log('- ' + path)
+
 
 def sign_rpms():
   log('Signing generated files')
@@ -354,6 +380,7 @@ def sign_rpms():
 
   if ret != 0:
     log('Failed to sign packages.')
+
 
 def upload_http(url):
   '''
