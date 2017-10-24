@@ -368,12 +368,6 @@ def mock(distribution, rpm_options, srpmsdir, upload_result):
         log('Failed to build packages.', 'ERROR')
 
 
-def list_result(rpmfiles):
-    log('Listing generated files:')
-    for path in rpmfiles:
-        log('- ' + path)
-
-
 def sign_rpms(rpmfiles):
     log('Signing generated files')
     cmd = [_RPMSIGN, '--addsign'] + rpmfiles
@@ -430,7 +424,9 @@ def main():
     # Find the resulting packages
     rpmfiles = glob.glob('/var/lib/mock/*/result/*.rpm')
     # List the resulting packages
-    list_result(rpmfiles)
+    log('Listing generated files:')
+    for path in rpmfiles:
+        log('- ' + path)
     # Sign the packages
     if key_ok:
         sign_rpms(rpmfiles)
