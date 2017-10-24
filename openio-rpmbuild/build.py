@@ -273,10 +273,6 @@ def download_sources():
                 download_file(stripped_url, sourcedir + '/' + os.path.basename(urlparsed.path))
 
 
-# Match "SourceXX:" lines from specfile
-re_source = re.compile(r'^\s*Source(?P<srcnum>\d*)\s*:\s*(?P<srcloc>.+)\s*$')
-
-
 def get_companion_sources(local_specfile):
     """
         Download local "SourceXX" files specified in the specfile, if they are not
@@ -285,6 +281,9 @@ def get_companion_sources(local_specfile):
     # Use spectool to list files, handling "%{...}" macro substitutions properly
     cmd = [_SPECTOOL, '--list-files', local_specfile]
     output = subprocess.check_output(cmd)
+
+    # Match "SourceXX:" lines from specfile
+    re_source = re.compile(r'^\s*Source(?P<srcnum>\d*)\s*:\s*(?P<srcloc>.+)\s*$')
 
     for line in output.splitlines():
         rem = re_source.match(line.strip())
