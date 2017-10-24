@@ -312,7 +312,7 @@ def get_repo_data():
       'arch': os.environ.get('OIO_ARCH', 'x86_64'),
   }
 
-def patch_mock_config(distribution):
+def patch_mock_config(distribution, upload_result):
   '''Replace the baseurl in the mock configuration file pointing to the openio
   mirror, so that it points to the currently being populated one.
   This allows mock to find newly built packages that are depended upon.
@@ -336,7 +336,7 @@ def patch_mock_config(distribution):
 
 def mock(distribution, rpm_options, srpmsdir, upload_result):
   # FIXME: currently only doing this if uploading to oiorepo
-  patch_mock_config(distribution)
+  patch_mock_config(distribution, upload_result)
   cmd = [_MOCK, '-r', distribution, rpm_options, '--rebuild', srpmsdir + '/*.src.rpm']
   ret = subprocess.call(' '.join(cmd))
   if ret != 0:
