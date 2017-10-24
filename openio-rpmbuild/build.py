@@ -336,9 +336,10 @@ def get_repo_data():
 
 
 def patch_mock_config(distribution, upload_result):
-    '''Replace the baseurl in the mock configuration file pointing to the openio
-    mirror, so that it points to the currently being populated one.
-    This allows mock to find newly built packages that are depended upon.
+    '''
+        Replace the baseurl in the mock configuration file pointing to the openio
+        mirror, so that it points to the currently being populated one.
+        This allows mock to find newly built packages that are depended upon.
     '''
     mock_cfg = '/etc/mock/' + distribution + '.cfg'
     newlines = []
