@@ -15,6 +15,13 @@ import requests
 
 from git import Repo
 
+# Spawned tools binary pathes
+_SPECTOOL = '/usr/bin/spectool'
+_RPMBUILD = '/usr/bin/rpmbuild'
+_RPMSIGN = '/usr/bin/rpmsign'
+_MOCK = '/usr/bin/mock'
+_GPG = '/usr/bin/gpg'
+
 # Static
 homedir = os.path.expanduser('~')
 rpmbuilddir = homedir + '/rpmbuild'
@@ -87,8 +94,12 @@ rpmmacro_sign = """
 """
 
 def set_keyfile():
+  """
+      Import keyfile into gpg keyring, and setup rpm macros to use this as
+      package signing key
+  """
   if keyfile and os.path.exists(keyfile):
-    cmd = ['gpg', '--import', keyfile]
+    cmd = [_GPG, '--import', keyfile]
     ret = subprocess.call(' '.join(cmd))
     if ret != 0:
       log("Failed to import the GPG private key, your packages won't be signed.")
@@ -264,7 +275,7 @@ def get_companion_sources(local_specfile):
       an URL, i.e. they are located in the same location as the specfile itself
   """
   # Use spectool to list files, handling "%{...}" macro substitutions properly
-  cmd = ['spectool', '--list-files', local_specfile]
+  cmd = [_SPECTOOL, '--list-files', local_specfile]
   output = subprocess.check_output(cmd)
 
   for line in output.splitlines():
@@ -275,13 +286,13 @@ def get_companion_sources(local_specfile):
         download_file(specfile_url_base + '/' + srcloc, specdir + '/' + srcloc)
 
 def spectool(rpm_options, specfile):
-  cmd = ['/usr/bin/spectool', '-g', '-S', '-R', rpm_options, specfile]
+  cmd = [_SPECTOOL, '-g', '-S', '-R', rpm_options, specfile]
   ret = subprocess.call(' '.join(cmd))
   if ret != 0:
     log('Failed to get source files.', 'ERROR')
 
 def rpmbuild_bs(rpm_options, specfile):
-  cmd = ['/usr/bin/rpmbuild', '-bs', '--nodeps', rpm_options, specfile]
+  cmd = [_RPMBUILD, '-bs', '--nodeps', rpm_options, specfile]
   ret = subprocess.call(' '.join(cmd))
   if ret != 0:
     log('Failed to create SRPM package.', 'ERROR')
@@ -322,7 +333,7 @@ def patch_mock_config(distribution):
 def mock(distribution, rpm_options, srpmsdir, upload_result):
   # FIXME: currently only doing this if uploading to oiorepo
   patch_mock_config(distribution)
-  cmd = ['/usr/bin/mock', '-r', distribution, rpm_options, '--rebuild', srpmsdir + '/*.src.rpm']
+  cmd = [_MOCK, '-r', distribution, rpm_options, '--rebuild', srpmsdir + '/*.src.rpm']
   ret = subprocess.call(' '.join(cmd))
   if ret != 0:
     log('Failed to build packages.', 'ERROR')
@@ -334,7 +345,7 @@ def list_result():
 
 def sign_rpms():
   log('Signing generated files')
-  cmd = ['rpmsign', '--addsign'] + glob.glob('/var/lib/mock/*/result/*.rpm')
+  cmd = [_RPMSIGN, '--addsign'] + glob.glob('/var/lib/mock/*/result/*.rpm')
   ret = subprocess.call(' '.join(cmd))
 
   if ret != 0:
