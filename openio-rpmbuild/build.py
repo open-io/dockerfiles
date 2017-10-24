@@ -81,25 +81,10 @@ def splitext(path):
     return os.path.splitext(path)
 
 
-def log_error(msg):
-    print 'ERROR: ' + msg
-    exit(1)
-
-
-def log_info(msg):
-    print 'INFO: ' + msg
-
-
 def log(msg, level='INFO'):
-    switch = {
-        'INFO':  log_info,
-        'ERR':   log_error,
-        'ERROR': log_error,
-    }
-    try:
-        switch.get(level)(msg)
-    except Exception:
-        log_error('Failed to log msg ' + msg)
+    print '%s: %s' % (level, msg)
+    if level.startswith('ERR'):
+        exit(1)
 
 
 def set_keyfile():
