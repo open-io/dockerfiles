@@ -87,25 +87,43 @@ def log(msg, level='INFO'):
         exit(1)
 
 
+def os_system(msg, msg_type, *args):
+    """
+        Execute `*args` as a command line and return status code, then call
+        `log(msg, msg_type)` if status is different from 0, i.e. not OK.
+
+        Items can be strings or iterables of strings, everything not empty
+    """
+    cmd = []
+    for arg in args:
+        if arg: # Skip empty ones
+            if isinstance(arg, str):
+                cmd.append(arg)
+            else: # Assume an iterable
+                cmd.extend(arg)
+    ret = subprocess.call(cmd)
+    if ret != 0:
+        log(msg, msg_type)
+    return ret
+
+
 def set_keyfile():
     """
         Import keyfile into gpg keyring, and setup rpm macros to use this as
         package signing key
     """
     if keyfile and os.path.exists(keyfile):
-        cmd = [_GPG, '--import', keyfile]
-        ret = subprocess.call(' '.join(cmd))
-        if ret != 0:
-            log("Failed to import the GPG private key, your packages won't be signed.")
-            return False
-        try:
-            log('Setting %_signature')
-            with open(rpmmacros_path, 'a') as rpmmacros:
-                rpmmacros.write(_RPMMACROS_SIGN)
-                return True
-        except Exception, e:
-            log('Failed to set macro %_signature')
-            log(str(e), 'ERROR')
+        msg = "Failed to import the GPG private key, your packages won't be signed."
+        ret = os_system(msg, 'INFO', _GPG, '--import', keyfile)
+        if ret == 0:
+            try:
+                log('Setting %_signature')
+                with open(rpmmacros_path, 'a') as rpmmacros:
+                    rpmmacros.write(_RPMMACROS_SIGN)
+                    return True
+            except Exception, e:
+                log('Failed to set macro %_signature')
+                log(str(e), 'ERROR')
     return False
 
 
@@ -294,17 +312,13 @@ def get_companion_sources(local_specfile):
 
 
 def spectool(rpm_options, specfile):
-    cmd = [_SPECTOOL, '-g', '-S', '-R', rpm_options, specfile]
-    ret = subprocess.call(' '.join(cmd))
-    if ret != 0:
-        log('Failed to get source files.', 'ERROR')
+    msg = 'Failed to get source files.'
+    os_system(msg, 'ERROR', _SPECTOOL, '-g', '-S', '-R', rpm_options, specfile)
 
 
 def rpmbuild_bs(rpm_options, specfile):
-    cmd = [_RPMBUILD, '-bs', '--nodeps', rpm_options, specfile]
-    ret = subprocess.call(' '.join(cmd))
-    if ret != 0:
-        log('Failed to create SRPM package.', 'ERROR')
+    msg = 'Failed to create SRPM package.'
+    os_system(msg, 'ERROR', _RPMBUILD, '-bs', '--nodeps', rpm_options, specfile)
 
 
 def get_repo_data():
@@ -346,19 +360,15 @@ def patch_mock_config(distribution, upload_result):
 def mock(distribution, rpm_options, srpmsdir, upload_result):
     # FIXME: currently only doing this if uploading to oiorepo
     patch_mock_config(distribution, upload_result)
-    cmd = [_MOCK, '-r', distribution, rpm_options, '--rebuild', srpmsdir + '/*.src.rpm']
-    ret = subprocess.call(' '.join(cmd))
-    if ret != 0:
-        log('Failed to build packages.', 'ERROR')
+    srpms = glob.glob(srpmsdir + '/*.src.rpm')
+    msg = 'Failed to build packages.'
+    os_system(msg, 'ERROR', _MOCK, '-r', distribution, rpm_options, '--rebuild', srpms)
 
 
 def sign_rpms(rpmfiles):
     log('Signing generated files')
-    cmd = [_RPMSIGN, '--addsign'] + rpmfiles
-    ret = subprocess.call(' '.join(cmd))
-
-    if ret != 0:
-        log('Failed to sign packages.')
+    msg = 'Failed to sign packages.'
+    os_system(msg, 'INFO', _RPMSIGN, '--addsign', rpmfiles)
 
 
 def upload_http(url, rpmfiles):
