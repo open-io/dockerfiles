@@ -368,22 +368,22 @@ def mock(distribution, rpm_options, srpmsdir, upload_result):
         log('Failed to build packages.', 'ERROR')
 
 
-def list_result():
+def list_result(rpmfiles):
     log('Listing generated files:')
-    for path in glob.glob('/var/lib/mock/*/result/*.rpm'):
+    for path in rpmfiles:
         log('- ' + path)
 
 
-def sign_rpms():
+def sign_rpms(rpmfiles):
     log('Signing generated files')
-    cmd = [_RPMSIGN, '--addsign'] + glob.glob('/var/lib/mock/*/result/*.rpm')
+    cmd = [_RPMSIGN, '--addsign'] + rpmfiles
     ret = subprocess.call(' '.join(cmd))
 
     if ret != 0:
         log('Failed to sign packages.')
 
 
-def upload_http(url):
+def upload_http(url, rpmfiles):
     '''
         Upload packages to an oiorepo web application:
         http://${OIO_REPO_HOST}:${OIO_REPO_PORT}/package
@@ -393,7 +393,7 @@ def upload_http(url):
     if urlparsed.scheme != 'http':
         log('Cannot upload files using http since URI seems not to be a http protocol: %s' % urlparsed.scheme, 'ERROR')
 
-    for lpath in glob.glob('/var/lib/mock/*/result/*.rpm'):
+    for lpath in rpmfiles:
         with open(lpath, "rb") as fin:
             files = {"file": fin}
             data = get_repo_data()
@@ -427,12 +427,16 @@ def main():
     rpmbuild_bs(rpm_options, get_specfile())
     # Build the package
     mock(distribution, rpm_options, srpmsdir, upload_result)
+    # Find the resulting packages
+    rpmfiles = glob.glob('/var/lib/mock/*/result/*.rpm')
     # List the resulting packages
-    list_result()
+    list_result(rpmfiles)
+    # Sign the packages
     if key_ok:
-        sign_rpms()
+        sign_rpms(rpmfiles)
+    # Upload the packages to oiorepo web service
     if upload_result:
-        upload_http(upload_result)
+        upload_http(upload_result, rpmfiles)
 
 
 if __name__ == "__main__":
