@@ -22,6 +22,16 @@ _RPMSIGN = '/usr/bin/rpmsign'
 _MOCK = '/usr/bin/mock'
 _GPG = '/usr/bin/gpg'
 
+# GPG key ID used to sign packages
+_OIO_OPS_EMAIL = 'OpenIO Operations Team <ops@openio.io>'
+
+# Signing section of ~/.rpmmacros
+_RPMMACROS_SIGN = """
+%%_signature %s
+%%_gpg_name  %s
+%%_gpg_path  %%(echo $HOME)/.gnupg
+""" % (_GPG, _OIO_OPS_EMAIL)
+
 # Static
 homedir = os.path.expanduser('~')
 rpmbuilddir = homedir + '/rpmbuild'
@@ -87,12 +97,6 @@ def log(msg, level='INFO'):
   except Exception:
     log_error('Failed to log msg ' + msg)
 
-rpmmacro_sign = """
-%_signature gpg
-%_gpg_name  ops@openio.io
-%_gpg_path  %(echo $HOME)/.gnupg
-"""
-
 def set_keyfile():
   """
       Import keyfile into gpg keyring, and setup rpm macros to use this as
@@ -107,7 +111,7 @@ def set_keyfile():
     try:
       log('Setting %_signature')
       with open(rpmmacros_path, 'a') as rpmmacros:
-        rpmmacros.write(rpmmacro_sign)
+        rpmmacros.write(_RPMMACROS_SIGN)
         return True
     except Exception, e:
       log('Failed to set macro %_signature')
