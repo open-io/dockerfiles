@@ -371,7 +371,7 @@ def mock(distribution, rpm_options, srpmsdir, upload_result):
 def sign_rpms(rpmfiles):
     log('Signing generated files')
     msg = 'Failed to sign packages.'
-    os_system(msg, 'INFO', _RPMSIGN, '--addsign', rpmfiles)
+    os_system(msg, 'ERROR', _RPMSIGN, '--addsign', rpmfiles)
 
 
 def upload_http(url, rpmfiles):
