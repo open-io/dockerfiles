@@ -296,12 +296,13 @@ def get_companion_sources(local_specfile):
         Download local "SourceXX" files specified in the specfile, if they are not
         an URL, i.e. they are located in the same location as the specfile itself
     """
+    log("Download companion source & patch files")
     # Use spectool to list files, handling "%{...}" macro substitutions properly
     cmd = [_SPECTOOL, '--list-files', local_specfile]
     output = subprocess.check_output(cmd)
 
-    # Match "SourceXX:" lines from specfile
-    re_source = re.compile(r'^\s*Source(?P<srcnum>\d*)\s*:\s*(?P<srcloc>.+)\s*$')
+    # Match "SourceXX:" or "PatchXXXX:" lines from specfile
+    re_source = re.compile(r'^\s*(Source|Patch)(?P<srcnum>\d*)\s*:\s*(?P<srcloc>.+)\s*$')
 
     for line in output.splitlines():
         rem = re_source.match(line.strip())
@@ -309,6 +310,8 @@ def get_companion_sources(local_specfile):
             srcloc = rem.group('srcloc')
             if not srcloc.startswith('http'):
                 download_file(specfile_url_base + '/' + srcloc, specdir + '/' + srcloc)
+        else:
+            log("Warning: get_companion_sources(): line does not match: " + line)
 
 
 def spectool(rpm_options, specfile):
