@@ -81,6 +81,15 @@ def splitext(path):
     return os.path.splitext(path)
 
 
+def is_url(url):
+    '''Determine if `url` is actiually an URL'''
+    if (url.startswith('https://') or
+            url.startswith('http://') or
+            url.startswith('ftp://')):
+        return True
+    return False
+
+
 def log(msg, level='INFO'):
     print '%s: %s' % (level, msg)
     if level.startswith('ERR'):
@@ -308,7 +317,7 @@ def get_companion_sources(local_specfile):
         rem = re_source.match(line.strip())
         if rem:
             srcloc = rem.group('srcloc')
-            if not srcloc.startswith('http'):
+            if not is_url(srcloc):
                 download_file(specfile_url_base + '/' + srcloc, specdir + '/' + srcloc)
         else:
             log("Warning: get_companion_sources(): line does not match: " + line)
