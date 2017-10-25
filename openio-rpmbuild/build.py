@@ -22,15 +22,15 @@ _RPMSIGN = '/usr/bin/rpmsign'
 _MOCK = '/usr/bin/mock'
 _GPG = '/usr/bin/gpg'
 
-# GPG key ID used to sign packages
-_OIO_OPS_EMAIL = 'OpenIO (RPM-GPG-KEY-OPENIO-0) <admin@openio.io>'
+# Default GPG key ID used to sign packages
+_OIO_KEY_ID = 'OpenIO (RPM-GPG-KEY-OPENIO-0) <admin@openio.io>'
 
 # Signing section of ~/.rpmmacros
 _RPMMACROS_SIGN = """
 %%_signature %s
 %%_gpg_name  %s
 %%_gpg_path  %%(echo $HOME)/.gnupg
-""" % (_GPG, _OIO_OPS_EMAIL)
+""" % (_GPG, os.environ.get('OIO_KEY_ID', _OIO_KEY_ID))
 
 # Static
 homedir = os.path.expanduser('~')
