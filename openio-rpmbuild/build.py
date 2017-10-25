@@ -23,7 +23,7 @@ _MOCK = '/usr/bin/mock'
 _GPG = '/usr/bin/gpg'
 
 # GPG key ID used to sign packages
-_OIO_OPS_EMAIL = 'OpenIO Operations Team <ops@openio.io>'
+_OIO_OPS_EMAIL = 'OpenIO (RPM-GPG-KEY-OPENIO-0) <admin@openio.io>'
 
 # Signing section of ~/.rpmmacros
 _RPMMACROS_SIGN = """
