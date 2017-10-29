@@ -289,12 +289,12 @@ def download_sources():
                 else:
                     commit = None
                 spec = get_rpmts().parseSpec(get_specfile())
-                specsource = spec.sourceHeader['SOURCE'][i]
+                specsource = os.path.basename(spec.sourceHeader['SOURCE'][i])
                 if query.get('arcname'):
                     arcname = query['arcname'][0]
                 else:
-                    arcname = splitext(os.path.basename(specsource))[0]
-                git_clone(stripped_url, sourcedir, branch, commit, archive=os.path.basename(specsource), arcname=arcname)
+                    arcname = splitext(specsource)[0]
+                git_clone(stripped_url, sourcedir, branch, commit, archive=specsource, arcname=arcname)
             else:
                 download_file(stripped_url, sourcedir + '/' + os.path.basename(urlparsed.path))
 
