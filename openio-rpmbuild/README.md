@@ -91,9 +91,9 @@ You can upload the resulting packages using SCP:
 Or you can upload using http to an oiorepo flask web application:
 
 ```console
-OIO_REPO_IP=`ip -4 address show dev docker0 | awk '/inet / {print substr($2,0,index($2,"/") - 1)}'`
-# docker run -e UPLOAD_RESULT="http://${OIO_REPO_IP}:5000/package" \
-             -e OIO_REPO_IP="${OIO_REPO_IP}" \
+OIO_REPO_HOST=`ip -4 address show dev docker0 | awk '/inet / {print substr($2,0,index($2,"/") - 1)}'`
+# docker run -e UPLOAD_RESULT="http://${OIO_REPO_HOST}:5000/package" \
+             -e OIO_REPO_HOST="mirror2.openio.io" \
              -e OIO_PROD="sds" \
              -e OIO_PROD_VER="16.10" \
              -e OIO_DISTRO="centos" \
