@@ -54,8 +54,6 @@ keyfile = os.environ.get('OIO_KEYFILE')
 repo_name = os.environ.get('GIT_REPO_NAME', 'rpm-specfiles')
 branch = os.environ.get('GIT_BRANCH', 'master')
 gitremote = os.environ.get('GIT_REMOTE')
-repo_ip = os.environ.get('OIO_REPO_IP')
-repo_port = os.environ.get('OIO_REPO_PORT', '80')
 
 gitaccount = 'open-io'
 if gitremote:
@@ -342,6 +340,8 @@ def get_repo_data():
         'distro': os.environ.get('OIO_DISTRO', 'centos'),
         'distro_ver': os.environ.get('OIO_DISTRO_VER', '7'),
         'arch': os.environ.get('OIO_ARCH', 'x86_64'),
+        'repo_host': os.environ.get('OIO_REPO_HOST', 'mirror2.openio.io'),
+        'repo_port': os.environ.get('OIO_REPO_PORT', '80'),
     }
 
 
@@ -358,8 +358,7 @@ def patch_mock_config(distribution, upload_result):
         for line in lines:
             if upload_result and line.startswith('baseurl=http://mirror.openio.io'):
                 repodata = get_repo_data()
-                repodata.update({'repo_ip': repo_ip, 'repo_port': repo_port})
-                newlines.append('baseurl=http://%(repo_ip)s:%(repo_port)s/pub/repo/%(company)s/%(prod)s/%(prod_ver)s/%(distro)s/%(distro_ver)s/%(arch)s/\n' % repodata)
+                newlines.append('baseurl=http://%(repo_host)s:%(repo_port)s/pub/repo/%(company)s/%(prod)s/%(prod_ver)s/%(distro)s/%(distro_ver)s/%(arch)s/\n' % repodata)
             else:
                 newlines.append(line)
     if not os.path.exists('/home/builder/.config'):
