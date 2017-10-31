@@ -49,7 +49,6 @@ specfile = os.environ.get('SPECFILE')
 sources = os.environ.get('SOURCES', '')
 # FIXME: this will fail if embedded spaces are needed, see set_rpm_options()
 rpm_options = os.environ.get('RPM_OPTIONS', '').split()
-distribution = os.environ.get('DISTRIBUTION', 'epel-7-x86_64')
 specfile_tag = os.environ.get('GIT_SRC_TAG')
 git_src_repo = os.environ.get('GIT_SRC_REPO')
 upload_result = os.environ.get('UPLOAD_RESULT')
@@ -370,6 +369,28 @@ def get_repo_data():
     }
 
 
+# List of package names that require the specific mock config with additionnal
+# openstack repositories for the build dependencies (f.e.: openstack-macros)
+_OPENSTACK_PKGS = [] # ['openstack-swift'] # TODO: create the mock configuration file first
+
+
+def get_mock_distribution(pkg):
+    '''Choose a mock configuration'''
+    distribution = os.environ.get('DISTRIBUTION')
+    if not distribution:
+        if pkg in _OPENSTACK_PKGS:
+            distribution = 'epel-7-x86_64-openstack'
+        else:
+            prod_ver = os.environ.get('OIO_PROD_VER')
+            if prod_ver:
+                distribution = "epel-7-x86_64-openio-sds-" + prod_ver
+            else:
+                log("Warning: falling back to default mock configuration")
+                distribution = 'epel-7-x86_64'
+    log("Using mock configuration: " + distribution)
+    return distribution
+
+
 re_mock_root = re.compile(r"config_opts\['root'\] = '(?P<mockroot>[^']+)'")
 
 
@@ -462,6 +483,8 @@ def main():
     mockroot = patch_mock_config(distribution, upload_result)
     mockresults = '/var/lib/mock/' + mockroot + '/result'
     # Build the package
+    pkg = os.path.splitext(os.path.basename(specfile))[0]
+    distribution = get_mock_distribution(pkg)
     mock(distribution, rpm_options, srpmsdir, upload_result)
     # Output mock log files (so that they can be archived by StackStorm)
     for mlf in glob.glob(mockresults + '/*.log'):
