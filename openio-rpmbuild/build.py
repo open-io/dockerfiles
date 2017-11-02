@@ -357,6 +357,7 @@ def patch_mock_config(distribution, upload_result):
         lines = fin.readlines()
         for line in lines:
             if upload_result and line.startswith('baseurl=http://mirror.openio.io'):
+                # FIXME: currently only doing this if uploading to oiorepo
                 repodata = get_repo_data()
                 newlines.append('baseurl=http://%(repo_host)s:%(repo_port)s/pub/repo/%(company)s/%(prod)s/%(prod_ver)s/%(distro)s/%(distro_ver)s/%(arch)s/\n' % repodata)
             else:
@@ -369,8 +370,6 @@ def patch_mock_config(distribution, upload_result):
 
 
 def mock(distribution, rpm_options, srpmsdir, upload_result):
-    # FIXME: currently only doing this if uploading to oiorepo
-    patch_mock_config(distribution, upload_result)
     srpms = glob.glob(srpmsdir + '/*.src.rpm')
     msg = 'Failed to build packages.'
     os_system(msg, 'ERROR', _MOCK, '-r', distribution, rpm_options, '--rebuild', srpms)
@@ -424,6 +423,8 @@ def main():
     get_companion_sources(local_specfile)
     # Create the SRPM
     rpmbuild_bs(rpm_options, get_specfile())
+    # Patch mock configuration
+    patch_mock_config(distribution, upload_result)
     # Build the package
     mock(distribution, rpm_options, srpmsdir, upload_result)
     # Find the resulting packages
