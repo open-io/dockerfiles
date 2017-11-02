@@ -345,6 +345,9 @@ def get_repo_data():
     }
 
 
+re_mock_root = re.compile(r"config_opts\['root'\] = '(?P<mockroot>[^']+)'")
+
+
 def patch_mock_config(distribution, upload_result):
     '''
         Replace the baseurl in the mock configuration file pointing to the openio
@@ -353,6 +356,7 @@ def patch_mock_config(distribution, upload_result):
     '''
     mock_cfg = '/etc/mock/' + distribution + '.cfg'
     newlines = []
+    mockroot = None
     with open(mock_cfg, 'rb') as fin:
         lines = fin.readlines()
         for line in lines:
@@ -361,12 +365,16 @@ def patch_mock_config(distribution, upload_result):
                 repodata = get_repo_data()
                 newlines.append('baseurl=http://%(repo_host)s:%(repo_port)s/pub/repo/%(company)s/%(prod)s/%(prod_ver)s/%(distro)s/%(distro_ver)s/%(arch)s/\n' % repodata)
             else:
+                rem = re_mock_root.match(line)
+                if rem:
+                    mockroot = rem.group('mockroot')
                 newlines.append(line)
     if not os.path.exists('/home/builder/.config'):
         os.mkdir('/home/builder/.config')
     # Overrides global config with local one
     with open('/home/builder/.config/mock.cfg', 'wb') as fout:
         fout.writelines(newlines)
+    return mockroot
 
 
 def mock(distribution, rpm_options, srpmsdir, upload_result):
