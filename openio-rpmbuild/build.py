@@ -3,6 +3,7 @@
 
 import os
 import re
+import sys
 import glob
 import urlparse
 import subprocess
@@ -436,6 +437,11 @@ def main():
     mockresults = '/var/lib/mock/' + mockroot + '/result'
     # Build the package
     mock(distribution, rpm_options, srpmsdir, upload_result)
+    # Output mock log files (so that they can be archived by StackStorm)
+    for mlf in glob.glob(mockresults + '/*.log'):
+        log('Mock log file: ' + mlf)
+        with open(mlf, 'rb') as fin:
+            sys.stdout.write(fin.read())
     # Find the resulting packages
     rpmfiles = glob.glob(mockresults + '/*.rpm')
     # List the resulting packages
