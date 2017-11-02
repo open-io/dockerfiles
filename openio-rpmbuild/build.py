@@ -432,11 +432,12 @@ def main():
     # Create the SRPM
     rpmbuild_bs(rpm_options, get_specfile())
     # Patch mock configuration
-    patch_mock_config(distribution, upload_result)
+    mockroot = patch_mock_config(distribution, upload_result)
+    mockresults = '/var/lib/mock/' + mockroot + '/result'
     # Build the package
     mock(distribution, rpm_options, srpmsdir, upload_result)
     # Find the resulting packages
-    rpmfiles = glob.glob('/var/lib/mock/*/result/*.rpm')
+    rpmfiles = glob.glob(mockresults + '/*.rpm')
     # List the resulting packages
     log('Listing generated files:')
     for path in rpmfiles:
