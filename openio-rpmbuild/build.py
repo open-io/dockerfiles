@@ -47,7 +47,8 @@ github_prefix = "https://github.com/"
 # Overridable vars
 specfile = os.environ.get('SPECFILE')
 sources = os.environ.get('SOURCES', '')
-rpm_options = os.environ.get('RPM_OPTIONS', '')
+# FIXME: this will fail if embedded spaces are needed, see set_rpm_options()
+rpm_options = os.environ.get('RPM_OPTIONS', '').split()
 distribution = os.environ.get('DISTRIBUTION', 'epel-7-x86_64')
 specfile_tag = os.environ.get('SPECFILE_TAG')
 upload_result = os.environ.get('UPLOAD_RESULT')
@@ -260,7 +261,7 @@ def download_specfile(url, directory):
 def set_rpm_options():
     if specfile_tag:
         global rpm_options
-        rpm_options = "--define '_with_test 1' --define 'tag " + specfile_tag + "'"
+        rpm_options = ["--define", "_with_test 1", "--define", "tag %s" % specfile_tag]
 
 
 def get_rpmts():
