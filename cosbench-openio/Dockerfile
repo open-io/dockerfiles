@@ -1,17 +1,22 @@
 FROM ubuntu:16.04
 
-ENV COSVERSION=15e5395
+ENV COSVERSION=674fa86
+ENV COSPKGNAME="cosbench-"
+ENV COSNAME="cosbench-"
+ENV COSFILENAMEEXT=".tgz"
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
          dpkg apt-transport-https curl apt-utils netcat net-tools openjdk-8-jre
 
-COPY cosbench-15e5395.tar.gz /root/
+COPY ${COSPKGNAME}${COSVERSION}${COSFILENAMEEXT} /
 
-RUN tar xf /root/cosbench-${COSVERSION}.tar.gz -C /root/ \
-    && rm -f /root/cosbench-${COSVERSION}.tar.gz \
-    && mv /root/cosbench-${COSVERSION} /root/cosbench
+RUN tar xf /${COSPKGNAME}${COSVERSION}${COSFILENAMEEXT} -C / \
+    && mv /${COSNAME}${COSVERSION} /cosbench \
+    && rm -f /${COSPKGNAME}${COSVERSION}${COSFILENAMEEXT} \
+    && rm -rf /${COSNAME}${COSVERSION} \
+    && rm -f /bin/sh && ln -s /bin/bash /bin/sh
 
-ADD start-cosbench.sh /root/cosbench/
+ADD start-cosbench.sh /cosbench/
 
-CMD ["/root/cosbench/start-cosbench.sh"]
+CMD ["/cosbench/start-cosbench.sh"]
