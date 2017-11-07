@@ -1,5 +1,4 @@
 #!/bin/sh
-set -x
 
 # Default configuration
 NS='OPENIO'
