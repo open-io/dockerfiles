@@ -43,4 +43,5 @@ RUN /usr/share/puppet/modules/openiosds/profiles/install.sh ${PUPPET_PROFILE} \
 VOLUME ["/var/lib/oio/sds/OPENIO"]
 ADD openio-docker-init.sh /
 EXPOSE 6007
+ADD swift.pp /root/swift.pp
 CMD ["/bin/bash", "/openio-docker-init.sh"]
