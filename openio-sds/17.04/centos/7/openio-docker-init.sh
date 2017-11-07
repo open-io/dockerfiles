@@ -1,5 +1,5 @@
 #!/bin/sh
-#set -x
+set -x
 
 # Default configuration
 NS='OPENIO'
@@ -111,9 +111,40 @@ function prepare(){
   chown openio.openio /var/lib/oio/sds/OPENIO /var/lib/oio/sds/OPENIO/{beanstalkd-0,coredump,ecd-0,meta0-0,meta1-0,meta2-0,rawx-0,rdir-0,redis-0}
 }
 
+function keystone_config(){
+  if [ ! -z "$KEYSTONE_ENABLED" ]; then
+    echo "Setting up Openstack Keystone authentication"
+    : "${KEYSTONE_URI:=${IPADDR}:5000}"
+    : "${KEYSTONE_URL:=${IPADDR}:35357}"
+    : "${SWIFT_USERNAME:=swift}"
+    : "${SWIFT_PASSWORD:=SWIFT_PASS}"
+    sed -i -e "s@%KEYSTONE_URI%@$KEYSTONE_URI@" \
+           -e "s@%KEYSTONE_URL%@$KEYSTONE_URL@" \
+           -e "s@%SWIFT_USERNAME%@$SWIFT_USERNAME@" \
+           -e "s@%SWIFT_PASSWORD%@$SWIFT_PASSWORD@" \
+           /root/swift.pp
+    puppet apply --no-stringify_facts /root/swift.pp
+  fi
+}
+
+function enable_log(){
+  if [ ! -z "$LOG_ENABLED" ]; then
+    echo 'Enabling local logs'
+    echo '$AddUnixListenSocket /dev/log' >>/etc/rsyslog.conf
+    /usr/sbin/rsyslogd
+  fi
+}
+
+function set_region(){
+  : "${REGION:=RegionOne}"
+  sed -i -e "s@%REGION%@$REGION@" \
+    /root/swift.pp
+}
+
 ### Main
 
 prepare
+enable_log
 
 # Firstboot script to setup OpenIO configuration
 if [ ! -f /etc/oio/sds/firstboot ]; then
@@ -126,13 +157,17 @@ if [ ! -f /etc/oio/sds/firstboot ]; then
       echo "Error: Failed to get IP for device ${OPENIO_IFDEV}"
     fi
   fi
+
+  # Update Swift credentials
+  update_swift_credentials
+  set_region
+  keystone_config
+
+  # Update listenning address
   if [ ! -z "$IPADDR" ]; then
     echo "> Using ${IPADDR} IP address for services"
     /usr/bin/find /etc/oio /etc/gridinit.d -type f -print0 | xargs --no-run-if-empty -0 sed -i "s/127.0.0.1/${IPADDR}/g"
   fi
-
-  # Update Swift credentials
-  update_swift_credentials
 
   # Deploy OpenIO
   initcluster
