@@ -260,7 +260,7 @@ def download_specfile(url, directory):
 
 
 def set_rpm_options():
-    if specfile_tag && git_src_repo:
+    if specfile_tag and git_src_repo:
         global rpm_options
         rpm_options = ["--define", "_with_test 1", "--define", "tag %s" % specfile_tag, '--define', 'git_repo %s' % git_src_repo]
 
