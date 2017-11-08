@@ -47,9 +47,11 @@ github_prefix = "https://github.com/"
 # Overridable vars
 specfile = os.environ.get('SPECFILE')
 sources = os.environ.get('SOURCES', '')
-rpm_options = os.environ.get('RPM_OPTIONS', '')
+# FIXME: this will fail if embedded spaces are needed, see set_rpm_options()
+rpm_options = os.environ.get('RPM_OPTIONS', '').split()
 distribution = os.environ.get('DISTRIBUTION', 'epel-7-x86_64')
-specfile_tag = os.environ.get('SPECFILE_TAG')
+specfile_tag = os.environ.get('GIT_SRC_TAG')
+git_src_repo = os.environ.get('GIT_SRC_REPO')
 upload_result = os.environ.get('UPLOAD_RESULT')
 keyfile = os.environ.get('OIO_KEYFILE')
 repo_name = os.environ.get('GIT_REPO_NAME', 'rpm-specfiles')
@@ -258,15 +260,16 @@ def download_specfile(url, directory):
 
 
 def set_rpm_options():
-    if specfile_tag:
+    if specfile_tag && git_src_repo:
         global rpm_options
-        rpm_options = "--define '_with_test 1' --define 'tag " + specfile_tag + "'"
+        rpm_options = ["--define", "_with_test 1", "--define", "tag %s" % specfile_tag, '--define', 'git_repo %s' % git_src_repo]
 
 
 def get_rpmts():
     if specfile_tag:
         rpm.addMacro('_with_test', '1')
         rpm.addMacro('tag', specfile_tag)
+        rpm.addMacro('git_repo', git_src_repo)
     return rpm.TransactionSet()
 
 
@@ -289,12 +292,12 @@ def download_sources():
                 else:
                     commit = None
                 spec = get_rpmts().parseSpec(get_specfile())
-                specsource = spec.sourceHeader['SOURCE'][i]
+                specsource = os.path.basename(spec.sourceHeader['SOURCE'][i])
                 if query.get('arcname'):
                     arcname = query['arcname'][0]
                 else:
-                    arcname = splitext(os.path.basename(specsource))[0]
-                git_clone(stripped_url, sourcedir, branch, commit, archive=os.path.basename(specsource), arcname=arcname)
+                    arcname = splitext(specsource)[0]
+                git_clone(stripped_url, sourcedir, branch, commit, archive=specsource, arcname=arcname)
             else:
                 download_file(stripped_url, sourcedir + '/' + os.path.basename(urlparsed.path))
 
