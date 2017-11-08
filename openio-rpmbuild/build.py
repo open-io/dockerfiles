@@ -118,6 +118,7 @@ def os_system(msg, msg_type, *args):
                 cmd.append(arg)
             else: # Assume an iterable
                 cmd.extend(arg)
+    logverbose('os_system(...): running %s' % str(cmd))
     ret = subprocess.call(cmd)
     if ret != 0:
         log(msg, msg_type)
@@ -129,6 +130,7 @@ def set_keyfile():
         Import keyfile into gpg keyring, and setup rpm macros to use this as
         package signing key
     """
+    logverbose('set_keyfile()')
     if keyfile and os.path.exists(keyfile):
         msg = "Failed to import the GPG private key, your packages won't be signed."
         ret = os_system(msg, 'INFO', _GPG, '--import', keyfile)
@@ -145,10 +147,11 @@ def set_keyfile():
 
 
 def set_sourcedir(srcdir=sourcedir, macros_path=rpmmacros_path):
+    logverbose('set_sourcedir(%s, %s)' % (srcdir, macros_path))
     try:
-        log('Setting %_sourcedir to ' + srcdir)
         with open(macros_path, 'w') as rpmmacros:
             rpmmacros.write('%_sourcedir ' + srcdir + '\n')
+        log('Setting %_sourcedir to ' + srcdir)
     except Exception:
         log('Failed to set macro %_sourcedir', 'ERROR')
 
@@ -165,8 +168,8 @@ def is_git(url):
 
 
 def download_file(url, path):
+    logverbose('download_file(%s, %s)' % (url, path))
     try:
-        log('Downloading file ' + url)
         request = requests.get(url, timeout=10, stream=True)
         if request.status_code == 404:
             log('URL ' + url + ' not found.', 'ERROR')
@@ -183,6 +186,7 @@ def url_strip_query_fragment(url):
 
 
 def git_clone(url, destdir, branch='master', commit=None, clean=True, archive=None, arcname=None):
+    logverbose('git_clone(...)')
     try:
         log('Cloning git repository ' + url)
         urlparsed = urlparse.urlparse(url)
@@ -214,6 +218,7 @@ def git_clone(url, destdir, branch='master', commit=None, clean=True, archive=No
 
 
 def clean_git_repo(directory):
+    logverbose('clean_git_repo(%s)' % directory)
     try:
         shutil.rmtree(directory + '/.git')
         os.remove(directory + '/.gitignore')
@@ -222,6 +227,7 @@ def clean_git_repo(directory):
 
 
 def create_archive(archive, source, arcname=None, clean=True):
+    logverbose('create_archive(%s, %s, %s, %s)' % (archive, source, str(arcname), str(clean)))
     try:
         compression = os.path.splitext(archive)[1][1:]
         if not arcname:
@@ -240,6 +246,7 @@ def create_archive(archive, source, arcname=None, clean=True):
 
 
 def set_specdir(spcdir=''):
+    logverbose('set_specdir(%s)' % spcdir)
     global specdir
     if spcdir:
         spcdir = '/' + spcdir
@@ -251,6 +258,7 @@ def set_specdir(spcdir=''):
 
 
 def download_specfile(url, directory):
+    logverbose('download_specfile(%s, %s)' % (url, directory))
     urlparsed = urlparse.urlparse(url)
     query = urlparse.parse_qs(urlparsed.query)
     stripped_url = url_strip_query_fragment(url)
@@ -267,12 +275,15 @@ def download_specfile(url, directory):
 
 
 def set_rpm_options():
+    logverbose('set_rpm_options()')
     if specfile_tag and git_src_repo:
         global rpm_options
         rpm_options = ["--define", "_with_test 1", "--define", "tag %s" % specfile_tag, '--define', 'git_repo %s' % git_src_repo]
+        logverbose('Setting RPM options: ' + str(rpm_options))
 
 
 def get_rpmts():
+    logverbose('get_rpmts()')
     if specfile_tag:
         rpm.addMacro('_with_test', '1')
         rpm.addMacro('tag', specfile_tag)
@@ -281,6 +292,7 @@ def get_rpmts():
 
 
 def download_sources():
+    logverbose('download_sources()')
     if sources:
         sources_list = sources.split(' ')
         for i, url in enumerate(sources_list):
@@ -314,7 +326,7 @@ def get_companion_sources(local_specfile):
         Download local "SourceXX" files specified in the specfile, if they are not
         an URL, i.e. they are located in the same location as the specfile itself
     """
-    log("Download companion source & patch files")
+    logverbose('get_companion_sources(%s)' % local_specfile)
     # Use spectool to list files, handling "%{...}" macro substitutions properly
     cmd = [_SPECTOOL, '--list-files', local_specfile]
     output = subprocess.check_output(cmd)
@@ -333,11 +345,13 @@ def get_companion_sources(local_specfile):
 
 
 def spectool(rpm_options, specfile):
+    logverbose('spectool(%s, %s)' % (rpm_options, specfile))
     msg = 'Failed to get source files.'
     os_system(msg, 'ERROR', _SPECTOOL, '-g', '-S', '-R', rpm_options, specfile)
 
 
 def rpmbuild_bs(rpm_options, specfile):
+    logverbose('rpmbuild_bs(%s, %s)' % (rpm_options, specfile))
     msg = 'Failed to create SRPM package.'
     os_system(msg, 'ERROR', _RPMBUILD, '-bs', '--nodeps', rpm_options, specfile)
 
@@ -365,6 +379,7 @@ def patch_mock_config(distribution, upload_result):
         mirror, so that it points to the currently being populated one.
         This allows mock to find newly built packages that are depended upon.
     '''
+    logverbose('patch_mock_config(%s, %s)' % (distribution, upload_result))
     mock_cfg = '/etc/mock/' + distribution + '.cfg'
     newlines = []
     mockroot = None
@@ -389,13 +404,14 @@ def patch_mock_config(distribution, upload_result):
 
 
 def mock(distribution, rpm_options, srpmsdir, upload_result):
+    logverbose('mock(%s, %s, %s, %s)' % (distribution, rpm_options, srpmsdir, upload_result))
     srpms = glob.glob(srpmsdir + '/*.src.rpm')
     msg = 'Failed to build packages.'
     os_system(msg, 'ERROR', _MOCK, '-r', distribution, rpm_options, '--rebuild', srpms)
 
 
 def sign_rpms(rpmfiles):
-    log('Signing generated files')
+    logverbose('sign_rpms(%s)' % rpmfiles)
     msg = 'Failed to sign packages.'
     os_system(msg, 'ERROR', _RPMSIGN, '--addsign', rpmfiles)
 
@@ -405,7 +421,7 @@ def upload_http(url, rpmfiles):
         Upload packages to an oiorepo web application:
         http://${OIO_REPO_HOST}:${OIO_REPO_PORT}/package
     '''
-    log('Uploading files using HTTP')
+    logverbose('upload_http(%s, %s)' % (url, rpmfiles))
     urlparsed = urlparse.urlparse(url)
     if urlparsed.scheme != 'http':
         log('Cannot upload files using http since URI seems not to be a http protocol: %s' % urlparsed.scheme, 'ERROR')
