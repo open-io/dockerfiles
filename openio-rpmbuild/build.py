@@ -284,7 +284,7 @@ def set_rpm_options():
 
 def get_rpmts():
     logverbose('get_rpmts()')
-    if specfile_tag:
+    if specfile_tag and git_src_repo:
         rpm.addMacro('_with_test', '1')
         rpm.addMacro('tag', specfile_tag)
         rpm.addMacro('git_repo', git_src_repo)
