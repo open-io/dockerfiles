@@ -58,6 +58,8 @@ repo_name = os.environ.get('GIT_REPO_NAME', 'rpm-specfiles')
 branch = os.environ.get('GIT_BRANCH', 'master')
 gitremote = os.environ.get('GIT_REMOTE')
 
+verbose = os.environ.get('OIO_BUILD_VERBOSE', False)
+
 gitaccount = 'open-io'
 if gitremote:
     if gitremote.startswith(github_prefix):
@@ -95,6 +97,11 @@ def log(msg, level='INFO'):
     print '%s: %s' % (level, msg)
     if level.startswith('ERR'):
         exit(1)
+
+
+def logverbose(msg):
+    if verbose:
+        log(msg)
 
 
 def os_system(msg, msg_type, *args):
