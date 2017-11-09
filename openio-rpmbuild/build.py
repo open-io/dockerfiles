@@ -479,12 +479,13 @@ def main():
     get_companion_sources(local_specfile)
     # Create the SRPM
     rpmbuild_bs(rpm_options, get_specfile())
+    # Choose a mock configuration
+    pkg = os.path.splitext(os.path.basename(specfile))[0]
+    distribution = get_mock_distribution(pkg)
     # Patch mock configuration
     mockroot = patch_mock_config(distribution, upload_result)
     mockresults = '/var/lib/mock/' + mockroot + '/result'
     # Build the package
-    pkg = os.path.splitext(os.path.basename(specfile))[0]
-    distribution = get_mock_distribution(pkg)
     mock(distribution, rpm_options, srpmsdir, upload_result)
     # Output mock log files (so that they can be archived by StackStorm)
     for mlf in glob.glob(mockresults + '/*.log'):
