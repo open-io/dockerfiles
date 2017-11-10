@@ -44,4 +44,4 @@ VOLUME ["/var/lib/oio/sds/OPENIO"]
 ADD openio-docker-init.sh /
 EXPOSE 6007
 ADD swift.pp /root/swift.pp
-CMD ["/bin/bash", "/openio-docker-init.sh"]
+CMD ["/openio-docker-init.sh"]
