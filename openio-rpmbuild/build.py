@@ -424,11 +424,19 @@ def patch_mock_config(distribution, upload_result):
     return mockroot
 
 
-def mock(distribution, rpm_options, srpmsdir, upload_result):
+def mock(distribution, rpm_options, srpmsdir, upload_result, mockresults):
     logverbose('mock(%s, %s, %s, %s)' % (distribution, rpm_options, srpmsdir, upload_result))
     srpms = glob.glob(srpmsdir + '/*.src.rpm')
     msg = 'Failed to build packages.'
-    os_system(msg, 'ERROR', _MOCK, '-r', distribution, rpm_options, '--rebuild', srpms)
+    ret = os_system(msg, 'INFO', _MOCK, '-r', distribution, rpm_options, '--rebuild', srpms)
+    # Output mock log files (so that they can be archived by StackStorm)
+    for mlf in glob.glob(mockresults + '/*.log'):
+        log('Mock log file: ' + mlf)
+        with open(mlf, 'rb') as fin:
+            sys.stdout.write(fin.read())
+    if ret != 0:
+        log('Failure during mock build', 'ERROR')
+        exit(1)
 
 
 def sign_rpms(rpmfiles):
@@ -486,12 +494,7 @@ def main():
     mockroot = patch_mock_config(distribution, upload_result)
     mockresults = '/var/lib/mock/' + mockroot + '/result'
     # Build the package
-    mock(distribution, rpm_options, srpmsdir, upload_result)
-    # Output mock log files (so that they can be archived by StackStorm)
-    for mlf in glob.glob(mockresults + '/*.log'):
-        log('Mock log file: ' + mlf)
-        with open(mlf, 'rb') as fin:
-            sys.stdout.write(fin.read())
+    mock(distribution, rpm_options, srpmsdir, upload_result, mockresults)
     # Find the resulting packages
     rpmfiles = glob.glob(mockresults + '/*.rpm')
     # List the resulting packages
