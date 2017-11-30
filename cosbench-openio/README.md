@@ -17,7 +17,7 @@ Environment variables available are:
 
 Start a simple COSbench container:  
 ```console
-# docker run --net=host -ti --tty racciari/cosbench-openio
+# docker run --net=host -ti racciari/cosbench-openio
 ```
 Then you can access the COSbench Web Interface through `http://localhost:19088/controller/index.html`
 
