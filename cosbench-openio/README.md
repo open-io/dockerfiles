@@ -15,11 +15,26 @@ Environment variables available are:
 - `COSBENCH_PLUGINS`: Comma separated list of COSbench OSGI plugins to load. The more you add, the slower it is to start (Default to `OPENIO`. Available values: `OPENIO,CDMI,SWIFT,SCALITY,S3,CEPH,AMPLI`)
 
 
-Start a simple COSbench container:  
+Start a controller/injector COSbench container:  
 ```console
-# docker run --net=host -ti racciari/cosbench-openio
+# docker run -dit --restart unless-stopped --net=host \
+-e CONTROLLER=true \
+-e DRIVER=true \
+-e DRIVERS="http://192.168.0.1:18088/driver,http://192.168.0.2:18088/driver" \
+-e COSBENCH_PLUGINS="OPENIO,SWIFT,S3" \
+openio/cosbench-openio
 ```
-Then you can access the COSbench Web Interface through `http://localhost:19088/controller/index.html`
+Then you can access the COSbench Web Interface through `http://192.168.0.1:19088/controller/index.html`
+
+Add one or more injector
+```console
+# docker run -dit --restart unless-stopped --net=host \
+-e CONTROLLER=false \
+-e DRIVER=true \
+-e DRIVERS="http://192.168.0.2:18088/driver" \
+-e COSBENCH_PLUGINS="OPENIO,SWIFT,S3" \
+openio/cosbench-openio
+```
 
 ## Define COSbench Workloads
 
