@@ -75,7 +75,7 @@ if [ "$CONTROLLER" = true -a "$DRIVER" = true ]; then
 elif [ "$CONTROLLER" = true ]; then
   echo "Sarting controller"
   ./start-controller.sh
-elif [ "$DRIVERS" = true ]; then
+elif [ "$DRIVER" = true ]; then
   echo "Starting driver"
   ./start-driver.sh
 else
