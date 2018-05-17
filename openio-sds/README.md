@@ -84,7 +84,7 @@ Setting the interface:
 
 Specifying the IP:
 ```console
-# docker run -e OPENIO_IPADDR=192.168.56.101 --net=host openio/sds
+# docker run -e OPENIO_IPADDR=192.168.56.102 --net=host openio/sds
 ```
 
 Change the Openstack Swift default credentials:
@@ -94,17 +94,24 @@ Change the Openstack Swift default credentials:
 
 Bind the Openstack Swift/Swift3 proxy port to you host:
 ```console
-# docker run -p 192.168.56.101:6007:6007 openio/sds
+# docker run -p 192.168.56.102:6007:6007 openio/sds
 ```
 
 Setting the default credentials to test Openstack Swift functionnal tests:
 ```console
-# docker run -p 192.168.56.101:6007:6007 -e SWIFT_CREDENTIALS="admin:admin:admin:.admin .reseller_admin,test2:tester2:testing2:.admin,test5:tester5:testing5:service,test:tester:testing:.admin,test:tester3:testing3" openio/sds
+# docker run -p 192.168.56.102:6007:6007 -e SWIFT_CREDENTIALS="admin:admin:admin:.admin .reseller_admin,test2:tester2:testing2:.admin,test5:tester5:testing5:service,test:tester:testing:.admin,test:tester3:testing3" openio/sds
 ```
 
 Before using `openio` CLI or Python, Java or C API from the outside, copy the contents of `/etc/oio/sds.conf.d/OPENIO` from the container to the same file on your host.
 ```console
 # docker exec -ti --tty $(docker ps -l --format "{{.ID}}") /bin/cat /etc/oio/sds.conf.d/OPENIO > /etc/oio/sds.conf.d/OPENIO
+```
+
+### Binding the OpenIO Swift gateway with Openstack Keystone
+
+By default, the image comes standalone with the TempAuth authentification system which is very handy for development and testing. However, if you want to test along with Openstack Keystone identity service, you can specify Keystone URI and URL as follow:  
+```console
+# docker run -d --net=host -e KEYSTONE_ENABLED='true' -e KEYSTONE_URI='192.168.56.102:5000' -e KEYSTONE_URL='192.168.56.102:35357' openio/sds
 ```
 
 ## Documentation
@@ -113,3 +120,4 @@ To test with different object storage clients:
 - [OpenIO SDS command line](http://docs.openio.io/user-guide/openiocli.html)
 - [Openstack Swift command line (using TempAuth)](http://docs.openio.io/user-guide/swiftcli.html#tempauth)
 - [AWS S3 command line](http://docs.openio.io/user-guide/awscli.html)
+- [Openstack Keystone image](https://hub.docker.com/r/openio/openstack-keystone/)
