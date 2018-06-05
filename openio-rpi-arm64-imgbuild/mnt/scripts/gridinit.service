@@ -1,0 +1,12 @@
+[Unit]
+Description=Gridinit daemon from OpenIO
+After=syslog.target
+
+[Service]
+User=root
+Group=root
+ExecStart=/usr/bin/gridinit -s GRIDINIT,local,gridinit,0 /etc/gridinit.conf
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
