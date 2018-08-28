@@ -26,6 +26,7 @@
       include_role:
         name: ansible-role-openio-repository
       vars:
+        openio_repository_manage_openstack_repository: false
         openio_repository_products:
           sds:
             release: '{{ repo_release }}'
