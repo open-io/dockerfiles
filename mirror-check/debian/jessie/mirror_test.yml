@@ -1,0 +1,43 @@
+---
+
+- name: Test mirror
+  hosts: localhost
+
+  tasks:
+
+    - name: Information
+      debug:
+        msg: 'Testing {{ repo_release }} repository on {{ openio_repository_mirror_host }}'
+
+    # Ensure it is not there
+    - name: Uninstall openio-sds-server
+      package:
+        name: openio-sds
+        state: absent
+
+    # Ensure nothing remaining can interfere
+    - name: Cleanup repository cache
+      command: apt-get clean all
+      args:
+        warn: 'no'
+
+    # Try to install
+    - name: 'Install mirror'
+      include_role:
+        name: ansible-role-openio-repository
+      vars:
+        openio_repository_products:
+          sds:
+            release: '{{ repo_release }}'
+
+    - name: 'Install rsyslog'
+      package:
+        name: rsyslog
+        state: latest
+
+    - name: 'Install openio-sds'
+      package:
+        name: openio-sds
+        state: latest
+
+...
