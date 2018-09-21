@@ -27,4 +27,6 @@ ADD inventory /
 
 ENV ANSIBLE_CONFIG /ansible.cfg
 
+RUN apt-get clean all
+
 ENTRYPOINT ["ansible-playbook", "mirror_test.yml"]
