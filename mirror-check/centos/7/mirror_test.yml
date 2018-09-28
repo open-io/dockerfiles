@@ -36,4 +36,13 @@
         name: openio-sds-server
         state: latest
 
+    # Display installed version
+    - name: 'Check openio-sds-server version'
+      command: 'yum info openio-sds-server'
+      register: oio_pkg_info        
+
+    - name: 'Show openio-sds-server version'
+      debug:
+        var: oio_pkg_info
+
 ...
