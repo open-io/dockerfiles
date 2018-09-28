@@ -42,11 +42,11 @@
         state: latest
 
     # Display installed version
-    - name: 'Check openio-sds-server version'
-      command: 'dpkg --status openio-sds-server'
+    - name: 'Check openio-sds version'
+      command: 'dpkg --status openio-sds'
       register: oio_pkg_info        
 
-    - name: 'Show openio-sds-server version'
+    - name: 'Show openio-sds version'
       debug:
         var: oio_pkg_info
 
