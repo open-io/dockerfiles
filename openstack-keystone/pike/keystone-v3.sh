@@ -1,4 +1,7 @@
 #!/bin/bash
+exec > >(tee -i /keystone-v3.log)
+exec 2>&1
+
 set -x
 
 ### Openstack Keystone
@@ -66,6 +69,10 @@ keystone-manage bootstrap \
 echo '> Starting Keystone admin service ...'
 /usr/bin/keystone-wsgi-admin --port 35357 &
 
+while ! nc -z ${IPADDR} 35357; do
+  sleep 1
+done
+
 
 # Admin credentials
 cat <<EOF >/keystone_adminrc
@@ -82,9 +89,9 @@ source /keystone_adminrc
 
 # Create roles
 echo '> Creating Keystone roles ...'
-openstack role create 'admin'
+#openstack role create 'admin'
+#openstack role create '_member_'
 openstack role create 'swiftoperator'
-openstack role create '_member_'
 # Object store service
 echo '> Registering Object Store service ...'
 openstack project create "$OS_OBJECTSTORE_PROJECT"
