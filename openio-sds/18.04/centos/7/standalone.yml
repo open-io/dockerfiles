@@ -1,0 +1,45 @@
+---
+# Use 18.10 playbook for 18.04
+openio_sds_release: "18.04"
+openio_release_supported:
+  - '18.04'
+openio_openstack_distro: 'pike'
+
+#Single node
+namespace_storage_policy: SINGLE
+
+# low resources node
+openio_account_workers: 1
+openio_oioswift_workers: 1
+openio_event_agent_workers: 1
+openio_zookeeper_parallel_gc_threads: 1
+openio_zookeeper_memory: "256M"
+openio_minimal_score_for_volume_admin_bootstrap: 5
+openio_minimal_score_for_directory_bootstrap: 5
+
+# Reduce directory size
+namespace_meta1_digits: 0
+
+# bind 127.0.0.1 by default
+openio_bind_address: "127.0.0.1"
+
+# Remove zookeeper url
+openio_namespace_zookeeper_url: ""
+
+# Reduce service policy for a standalone node
+openio_namespace_service_update_policy:
+  - name: meta2
+    policy: KEEP
+    replicas: 1
+    distance: 1
+  - name: rdir
+    policy: KEEP
+    replicas: 1
+    distance: 1
+
+openio_rdir_serviceid: 1
+
+openio_manage_os_requirement: false
+
+openio_account_redis_standalone: "127.0.0.1:6011"
+...
