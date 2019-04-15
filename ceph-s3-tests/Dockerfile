@@ -5,13 +5,13 @@ ARG AWS_S3_PORT
 
 RUN rm -rf /var/cache/yum
 RUN yum -y clean all
-RUN yum -y install deltarpm
+RUN yum -y install deltarpm epel-release
 
 RUN yum -y update
 
-RUN yum -y install epel-release
-RUN yum -y install git python-pip python-virtualenv
-RUN yum -y install libevent-devel libxml2-devel libxslt-devel zlib-devel
+RUN yum -y install \
+    git python-pip python-virtualenv sudo libffi-devel \
+    libevent-devel libxml2-devel libxslt-devel zlib-devel
 
 RUN git clone https://github.com/ceph/s3-tests.git
 
