@@ -36,4 +36,17 @@ openio_rdir_serviceid: 1
 openio_manage_os_requirement: false
 
 openio_account_redis_standalone: "127.0.0.1:6011"
+
+openio_oioswift_filter_swift3:
+  use: "egg:swift3#swift3"
+  force_swift_request_proxy_log: true
+  s3_acl: true
+  check_bucket_owner: true
+  location: "us-east-1"
+  # always set same value
+  max_bucket_listing: 1000
+  max_multi_delete_objects: 1000
+  bucket_db_enabled: true
+  bucket_db_host: "127.0.0.1:6011"
+
 ...
