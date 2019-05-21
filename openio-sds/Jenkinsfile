@@ -1,12 +1,19 @@
 pipeline {
   agent any
   parameters {
-    choice(name: 'SDS_RELEASE', choices: ['18.10', '18.04'], description: 'Openio release')
+    choice(name: 'SDS_RELEASE', choices: ['19.04','18.10', '18.04'], description: 'Openio release')
     booleanParam(name: 'LATEST', defaultValue: false, description: 'Latest version ?')
   }
   environment {
     PYTHONUNBUFFERED = '1'
     ANSIBLE_FORCE_COLOR = 'true'
+  }
+  triggers {
+        parameterizedCron('''
+0 14 * * 2 %SDS_RELEASE=19.04;LATEST=true
+15 14 * * 2 %SDS_RELEASE=18.10;LATEST=false
+30 14 * * 2 %SDS_RELEASE=18.04;LATEST=false
+        ''')
   }
   stages {
     stage('build') {
@@ -17,6 +24,16 @@ pipeline {
           sh './build.sh'
         }
 
+      }
+    }
+    stage('run & check') {
+      steps {
+        script {
+          SUT_ID = sh(returnStdout: true, script: "docker run -d openio/sds:${SDS_RELEASE}").trim()
+        }
+        retry(5) {
+          sh "SUT_ID=${SUT_ID} bats openio-sds/checks.bats"
+        }
       }
     }
     stage('docker push') {
@@ -39,6 +56,9 @@ pipeline {
 
   post {
     always {
+      sh "docker stop ${SUT_ID} && docker rm ${SUT_ID}"
+      sh "docker stop ${SUT_ID} && docker rm ${SUT_ID}"
+      sh "docker rmi openio/sds:${SDS_RELEASE}"
       cleanWs()
 
     }
