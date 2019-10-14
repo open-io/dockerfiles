@@ -10,7 +10,7 @@
         msg: 'Testing {{ repo_release }} repository on {{ openio_repository_mirror_host }}'
 
     # Ensure it is not there
-    - name: Uninstall openio-sds-server
+    - name: Uninstall openio-sds
       package:
         name: openio-sds
         state: absent
