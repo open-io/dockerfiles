@@ -3,6 +3,15 @@
 - name: Test mirror
   hosts: localhost
 
+  vars:
+    sds_pkgs:
+      - openio-sds-tools
+      - openio-sds-server
+      - openio-sds-common
+      - openio-sds-common-devel
+      - openio-sds-mod-httpd
+      - openio-sds-debuginfo
+
   tasks:
 
     - name: Information
@@ -10,9 +19,9 @@
         msg: 'Testing {{ repo_release }} repository on {{ openio_repository_mirror_host }}'
 
     # Ensure it is not there
-    - name: Uninstall openio-sds-server
+    - name: 'Uninstall openio-sds packages'
       package:
-        name: openio-sds-server
+        name: '{{ sds_pkgs }}'
         state: absent
 
     # Ensure nothing remaining can interfere
@@ -31,9 +40,9 @@
           sds:
             release: '{{ repo_release }}'
 
-    - name: 'Install openio-sds-server'
+    - name: 'Install openio-sds packages'
       package:
-        name: openio-sds-server
+        name: '{{ sds_pkgs }}'
         state: latest
 
     # Display installed version
