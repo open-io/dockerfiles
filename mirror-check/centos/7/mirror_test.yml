@@ -9,7 +9,6 @@
       - openio-sds-server
       - openio-sds-common
       - openio-sds-common-devel
-      - openio-sds-mod-httpd
       - openio-sds-debuginfo
       - openio-sds-swift
       - openio-sds-swift-plugin-swift3
@@ -46,6 +45,12 @@
       package:
         name: '{{ sds_pkgs }}'
         state: latest
+
+    - name: 'Install OpenIO packages: httpd rawx'
+      package:
+        name: 'openio-sds-mod-httpd'
+        state: latest
+      when: repo_release != '19.10'
 
     # Display installed version
     - name: 'Check openio-sds-server version'
