@@ -3,7 +3,9 @@ MAINTAINER "Vincent Legoll <vincent.legoll@openio.io>"
 
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get install -y git ansible
+RUN apt-get install -y git ansible python-pip
+
+RUN pip install --upgrade pip
 
 RUN git clone https://github.com/open-io/ansible-role-openio-repository.git
 
