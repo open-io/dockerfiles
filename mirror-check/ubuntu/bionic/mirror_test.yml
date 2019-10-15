@@ -3,6 +3,13 @@
 - name: Test mirror
   hosts: localhost
 
+  vars:
+    sds_pkgs:
+      - openio-sds-swift-plugin-s3
+      - openio-sds-swift
+      - openio-sds-dbg
+      - openio-sds
+
   tasks:
 
     - name: Information
@@ -10,9 +17,9 @@
         msg: 'Testing {{ repo_release }} repository on {{ openio_repository_mirror_host }}'
 
     # Ensure it is not there
-    - name: Uninstall openio-sds
+    - name: Uninstall OpenIO packages
       package:
-        name: openio-sds
+        name: '{{ sds_pkgs }}'
         state: absent
 
     # Ensure nothing remaining can interfere
@@ -36,9 +43,9 @@
         name: rsyslog
         state: latest
 
-    - name: 'Install openio-sds'
+    - name: 'Install OpenIO packages'
       package:
-        name: openio-sds
+        name: '{{ sds_pkgs }}'
         state: latest
 
     # Display installed version

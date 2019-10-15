@@ -11,6 +11,8 @@
       - openio-sds-common-devel
       - openio-sds-mod-httpd
       - openio-sds-debuginfo
+      - openio-sds-swift
+      - openio-sds-swift-plugin-swift3
 
   tasks:
 
@@ -19,7 +21,7 @@
         msg: 'Testing {{ repo_release }} repository on {{ openio_repository_mirror_host }}'
 
     # Ensure it is not there
-    - name: 'Uninstall openio-sds packages'
+    - name: 'Uninstall OpenIO packages'
       package:
         name: '{{ sds_pkgs }}'
         state: absent
@@ -40,7 +42,7 @@
           sds:
             release: '{{ repo_release }}'
 
-    - name: 'Install openio-sds packages'
+    - name: 'Install OpenIO packages'
       package:
         name: '{{ sds_pkgs }}'
         state: latest
