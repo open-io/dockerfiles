@@ -17,7 +17,7 @@
         msg: 'Testing {{ repo_release }} repository on {{ openio_repository_mirror_host }}'
 
     # Ensure it is not there
-    - name: Uninstall OpenIO packages
+    - name: 'Uninstall OpenIO packages'
       package:
         name: '{{ sds_pkgs }}'
         state: absent
@@ -48,12 +48,14 @@
         name: '{{ sds_pkgs }}'
         state: latest
 
-    # Display installed version
-    - name: 'Check openio-sds version'
-      command: 'dpkg --status openio-sds'
+    # Display installed versions
+    - name: 'Check OpenIO packages versions'
+      command: 'dpkg --status {{ " ".join(sds_pkgs) }}'
       register: oio_pkg_info        
+      args:
+        warn: 'no'
 
-    - name: 'Show openio-sds version'
+    - name: 'Show OpenIO packages versions'
       debug:
         var: oio_pkg_info
 
