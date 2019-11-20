@@ -12,10 +12,13 @@ RUN pip install "ansible>=2.5,<2.6"
 
 RUN git clone https://github.com/open-io/ansible-role-openio-repository.git
 
-ADD mirror_test.yml /
-ADD ansible.cfg /
-ADD inventory /
+ADD generic/mirror_test.yml /
+ADD generic/ansible.cfg /
+ADD generic/inventory /
+ADD generic/vars /
 
 ENV ANSIBLE_CONFIG /ansible.cfg
+
+RUN apt-get clean all
 
 ENTRYPOINT ["ansible-playbook", "mirror_test.yml"]

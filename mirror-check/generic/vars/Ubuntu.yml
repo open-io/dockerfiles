@@ -1,0 +1,15 @@
+---
+
+clean_all: 'apt-get clean all'
+pkg_info: 'dpkg --status'
+
+sds_pkgs:
+  - openio-sds-swift-plugin-s3
+  - openio-sds-swift
+  - openio-sds-dbg
+  - openio-sds
+
+dep_pkgs:
+  - rsyslog
+
+...
