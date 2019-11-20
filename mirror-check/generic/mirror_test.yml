@@ -5,19 +5,29 @@
 
   tasks:
 
+    - name: Include OS variables
+      include_vars: "{{ item }}"
+      with_first_found:
+        - "{{ ansible_distribution }}.yml"
+        - "{{ ansible_os_family }}.yml"
+
     - name: Information
       debug:
         msg: 'Testing {{ repo_release }} repository on {{ openio_repository_mirror_host }}'
 
+    - name: Packages to install
+      debug:
+        var: sds_pkgs
+
     # Ensure it is not there
-    - name: Uninstall openio-sds-server
+    - name: 'Uninstall OpenIO packages'
       package:
-        name: openio-sds
+        name: '{{ sds_pkgs }}'
         state: absent
 
     # Ensure nothing remaining can interfere
     - name: Cleanup repository cache
-      command: apt-get clean all
+      command: '{{ clean_all }}'
       args:
         warn: 'no'
 
@@ -31,22 +41,19 @@
           sds:
             release: '{{ repo_release }}'
 
-    - name: 'Install rsyslog'
+    - name: 'Install OpenIO packages'
       package:
-        name: rsyslog
+        name: '{{ dep_pkgs + sds_pkgs }}'
         state: latest
 
-    - name: 'Install openio-sds'
-      package:
-        name: openio-sds
-        state: latest
-
-    # Display installed version
-    - name: 'Check openio-sds version'
-      command: 'dpkg --status openio-sds'
+    # Display installed versions
+    - name: 'Check OpenIO packages versions'
+      command: '{{ pkg_info }} {{ " ".join(sds_pkgs) }}'
       register: oio_pkg_info        
+      args:
+        warn: 'no'
 
-    - name: 'Show openio-sds version'
+    - name: 'Show OpenIO packages versions'
       debug:
         var: oio_pkg_info
 
