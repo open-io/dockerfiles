@@ -1,0 +1,35 @@
+  
+FROM ubuntu:18.04
+MAINTAINER Cedric DELGEHIER <cedric.delgehier@openio.io>
+
+ENV container docker
+
+# https://hub.docker.com/_/ubuntu/
+RUN \
+    apt-get update; \
+    apt-get install -y systemd; \
+    (cd /lib/systemd/system/sysinit.target.wants/ || exit; for i in *; do [ "$i" = systemd-tmpfiles-setup.service ] || rm -f "$i"; done); \
+    rm -f /lib/systemd/system/multi-user.target.wants/*; \
+    rm -f /etc/systemd/system/*.wants/*; \
+    rm -f /lib/systemd/system/local-fs.target.wants/*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+    rm -f /lib/systemd/system/basic.target.wants/*; \
+    rm -f /lib/systemd/system/anaconda.target.wants/*; \
+    systemctl mask dev-mqueue.mount dev-hugepages.mount \
+      systemd-remount-fs.service sys-kernel-config.mount \
+      sys-kernel-debug.mount sys-fs-fuse-connections.mount \
+      systemd-logind.service getty.service getty.target; \
+    apt update; \
+    apt install -y git sudo python3-minimal python3-pip iproute2 python3-netaddr systemd rsyslog; \
+    : Can't log kernel messages unless we're privileged; \
+    sed -i 's/^\(module(load="imklog" permitnonkernelfacility="on"\)/#\1/' /etc/rsyslog.conf; \
+    pip3 install "ansible>=2.9,<2.10"; \
+    install -d -o root -g root -m 755 /etc/ansible/roles; \
+    echo '[local]\nlocalhost ansible_connection=local' > /etc/ansible/hosts; \
+    echo '[defaults]\nretry_files_enabled = False\nstdout_callback = yaml\ncallback_whitelist = profile_tasks\ndeprecation_warnings = True\ninterpreter_python=/usr/bin/python3\n[colors]\ndiff_remove = purple\n[diff]\nalways = yes' > /etc/ansible/ansible.cfg;\
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; 
+
+VOLUME ["/sys/fs/cgroup"]
+CMD ["/sbin/init"]
