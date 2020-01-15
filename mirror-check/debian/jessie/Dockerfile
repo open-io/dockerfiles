@@ -1,10 +1,10 @@
 FROM debian:jessie
 MAINTAINER "Vincent Legoll <vincent.legoll@openio.io>"
 
-RUN apt-get update
-RUN apt-get upgrade -y
+RUN DEBIAN_FRONTEND=noninteractive apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 
-RUN apt-get install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
     build-essential \
     git \
     libssl-dev \
@@ -28,6 +28,6 @@ ADD generic/vars /
 ENV ANSIBLE_CONFIG /ansible.cfg
 
 RUN chmod 0755 /entrypoint.sh
-RUN apt-get clean all
+RUN DEBIAN_FRONTEND=noninteractive apt-get clean all
 
 ENTRYPOINT ["/entrypoint.sh"]
