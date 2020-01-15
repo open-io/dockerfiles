@@ -31,8 +31,17 @@
       args:
         warn: 'no'
 
-    # Try to install
-    - name: 'Install mirror'
+    # Setup repositories
+    - name: 'Install SDS "stable" repository'
+      include_role:
+        name: ansible-role-openio-repository
+      vars:
+        openio_repository_no_log: false
+        openio_repository_products:
+          sds:
+            release: '{{ repo_release.split("/")[0] }}'
+
+    - name: 'Install SDS "unstable" repository'
       include_role:
         name: ansible-role-openio-repository
       vars:
@@ -40,7 +49,9 @@
         openio_repository_products:
           sds:
             release: '{{ repo_release }}'
+      when: "'/' in repo.value.release"
 
+    # Try to install
     - name: 'Install OpenIO packages'
       package:
         name: '{{ dep_pkgs + sds_pkgs }}'
