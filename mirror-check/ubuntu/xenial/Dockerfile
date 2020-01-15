@@ -1,9 +1,9 @@
 FROM ubuntu:xenial
 MAINTAINER "Vincent Legoll <vincent.legoll@openio.io>"
 
-RUN apt-get update
-RUN apt-get upgrade -y
-RUN apt-get install -y git python-pip build-essential libffi-dev
+RUN DEBIAN_FRONTEND=noninteractive apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git python-pip build-essential libffi-dev
 
 RUN pip install --upgrade pip
 
@@ -19,6 +19,6 @@ ADD generic/vars /
 ENV ANSIBLE_CONFIG /ansible.cfg
 
 RUN chmod 0755 /entrypoint.sh
-RUN apt-get clean all
+RUN DEBIAN_FRONTEND=noninteractive apt-get clean all
 
 ENTRYPOINT ["/entrypoint.sh"]
