@@ -4,7 +4,7 @@ RELEASE=$1
 MIRROR=$2
 
 cd /
-git clone https://github.com/open-io/ansible-role-openio-repository.git
+git clone --quiet https://github.com/open-io/ansible-role-openio-repository.git
 
 cd ansible-role-openio-repository
 git checkout "${RELEASE%/*}"
