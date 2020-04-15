@@ -6,9 +6,7 @@ DESTINATION=openio/sds:${OIOSDS_RELEASE}
 
 ID=$(docker run --detach --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro --hostname openiosds centos/systemd:latest /usr/sbin/init)
 
-virtualenv venv
-. ./venv/bin/activate
-pip install 'ansible<2.10' netaddr
+python3 -m pip install 'ansible<2.10' netaddr
 git clone -b ${OIOSDS_RELEASE} https://github.com/open-io/ansible-playbook-openio-deployment.git
 cp inventory.yml ansible-playbook-openio-deployment/products/sds
 pushd ansible-playbook-openio-deployment/products/sds
