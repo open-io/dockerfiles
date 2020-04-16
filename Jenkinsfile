@@ -19,58 +19,72 @@ pipeline {
     cron('@weekly')
   }
   stages {
+    stage('Shell Lint') {
+      agent {
+        label 'docker'
+      }
+      steps {
+        sh 'docker run --rm -t -v ${WORKSPACE}:${WORKSPACE}:ro koalaman/shellcheck-alpine sh -x -c "find ${WORKSPACE}/openio-sds -type f -name *.bats -or -name build.sh -or -name test.sh | xargs -I- shellcheck -"'
+      }
+    } /* stage('Shell Lint') */
     stage('Build a SDS Release Docker Image') {
       matrix {
         axes {
           axis {
-            name 'SDS_RELEASE'
-            values '19.10','19.04','18.10', '18.04'
+            name 'DOCKER_IMAGE_DIR'
+            values 'openio-sds/19.10', 'openio-sds/19.04','openio-sds/18.10' //,'openio-sds/18.04' // 1804 disabled because packages are missing
           }
         }
         agent {
           dockerfile {
             label 'docker'
-            dir './openio-sds/jenkins-agent/'
+            dir "${DOCKER_IMAGE_DIR}/jenkins/"
             filename 'Dockerfile'
             args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
           }
         }
+        environment {
+          DOCKER_IMAGE_NAME = DOCKER_IMAGE_DIR.replaceAll("/","-")
+          DOCKER_BUILD_CONTAINER_NAME = "${GIT_COMMIT.substring(0,6)}-${BUILD_ID}-${DOCKER_IMAGE_NAME}-build"
+          DOCKER_TEST_CONTAINER_NAME = "${GIT_COMMIT.substring(0,6)}-${BUILD_ID}-${DOCKER_IMAGE_NAME}-test"
+        }
         stages {
           stage('build') {
             steps {
-              echo "SDS_RELEASE=${SDS_RELEASE}"
-              dir(path: "openio-sds/${SDS_RELEASE}/centos/7") {
-                sh 'bash ./build.sh'
-              }
+              sh 'echo "Building Docker Image ${DOCKER_IMAGE_NAME} from ${DOCKER_IMAGE_DIR}"'
+              sh 'bash ${WORKSPACE}/${DOCKER_IMAGE_DIR}/build.sh'
             }
-          } // stage('build')
-          stage('run & check') {
-            environment {
-              SUT_ID = "${GIT_COMMIT.substring(0,6)}-${SDS_RELEASE}"
-            }
-            options {
-              retry(5)
-            }
-            steps {
-              sh '''
-                docker run -d --name "${SUT_ID}" "openio/sds:${SDS_RELEASE}"
-                SUT_IP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${SUT_ID})"
-                SUT_ID=${SUT_ID} SUT_IP=${SUT_IP} bats "${WORKSPACE}"/openio-sds/checks.bats
-              '''
-              post {
-                always {
-                  script {
-                    sh '''
-                    docker kill ${SUT_ID}
-                    docker rm ${SUT_ID}
-                    docker rmi openio/sds:${SDS_RELEASE}
-                    '''
-                  }
+            post {
+              always {
+                script {
+                  // Cleanup with forced removal, and removal of volumes
+                  sh '''
+                  docker kill ${DOCKER_BUILD_CONTAINER_NAME} || true
+                  docker rm -f -v ${DOCKER_BUILD_CONTAINER_NAME} || true
+                  '''
                 }
               }
             }
-          } // stage('run & check')
-          // stage('docker push') {
+          } // stage('build')
+
+          stage('test') {
+            steps {
+              sh 'bash ${WORKSPACE}/${DOCKER_IMAGE_DIR}/test.sh'
+            }
+            post {
+              always {
+                script {
+                  // Cleanup with forced removal, and removal of volumes
+                  sh '''
+                  docker kill ${DOCKER_TEST_CONTAINER_NAME} || true
+                  docker rm -f -v ${DOCKER_TEST_CONTAINER_NAME} || true
+                  docker rmi -f ${DOCKER_IMAGE_NAME} || true
+                  '''
+                }
+              }
+            }
+          } // stage('test')
+          // stage('deploy') {
           //   steps {
           //     withCredentials([usernamePassword(credentialsId: 'ID_HUB_DOCKER', usernameVariable: 'docker_user', passwordVariable: 'docker_pass')]) {
           //           sh "echo \${docker_pass} | docker login --password-stdin -u \${docker_user}"
@@ -85,7 +99,7 @@ pipeline {
           //       }
           //     }
           //   }
-          // } // stage('docker push')
+          // } // stage('deploy')
         } // stages
         post {
           always {
