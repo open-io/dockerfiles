@@ -25,7 +25,11 @@ pipeline {
         label 'docker'
       }
       steps {
-        sh 'docker run --rm -t -v ${WORKSPACE}:${WORKSPACE}:ro koalaman/shellcheck-alpine sh -x -c "find ${WORKSPACE}/openio-sds -type f -name *.bats -or -name build.sh -or -name test.sh | xargs -I- shellcheck -"'
+        sh '''
+        docker run --rm -t -v ${WORKSPACE}:${WORKSPACE}:ro koalaman/shellcheck-alpine \
+          sh -x -c "find ${WORKSPACE}/openio-sds -type f -name *.bats -or -name build.sh -or -name test.sh | grep -v ansible-playbook-openio-deployment \
+          | xargs -I- shellcheck -"
+        '''
       }
     } /* stage('Shell Lint') */
     stage('Build a SDS Release Docker Image') {
