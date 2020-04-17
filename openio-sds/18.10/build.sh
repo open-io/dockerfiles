@@ -11,6 +11,7 @@ pushd "${CURRENT_DIR}"
 
 docker run --detach --name="${DOCKER_BUILD_CONTAINER_NAME}" --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro --hostname openiosds centos/systemd:latest /usr/sbin/init
 
+rm -rf ansible-playbook-openio-deployment
 git clone -b "${OIOSDS_RELEASE}" https://github.com/open-io/ansible-playbook-openio-deployment.git
 cp inventory.ini ansible-playbook-openio-deployment/products/sds
 pushd ansible-playbook-openio-deployment/products/sds
