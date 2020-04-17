@@ -14,9 +14,6 @@ docker run -d --name "${DOCKER_TEST_CONTAINER_NAME}" "${DOCKER_IMAGE_NAME}"
 TESTER_IMAGE_NAME=openio-sds-tester
 docker build -t "${TESTER_IMAGE_NAME}" "${CURRENT_DIR}"/../tester/
 
-# Wait a bit before all services are initialized. 18.10 image is really slow to start (later versions of OiO are faster)
-sleep 120
-
 # Run tests
 docker run --rm -t \
     --network="container:${DOCKER_TEST_CONTAINER_NAME}" \

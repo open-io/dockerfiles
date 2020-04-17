@@ -1,177 +1,119 @@
 #!/usr/bin/env bats
 
+load "${BATS_HELPERS_DIR}/load.bash"
+
+CURL_OPTS=("--insecure" "--fail" "--location" "--silent" "--verbose" "--show-error")
+
+
 # Tests
 @test 'Account - status' {
-  run bash -c "curl http://${SUT_IP}:6009/status"
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  run retry 60 2 curl "${CURL_OPTS[@]}" "${SUT_IP}:6009/status"
+  assert_success
 }
 
 @test 'Conscience - up' {
-  run docker exec -i "${SUT_ID}" bash -c "/usr/bin/oio-tool ping ${SUT_IP}:6000"
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
-  [[ "${output}" == *"PING OK"* ]]
+  retry_contains_output 10 1 "PING OK" docker exec -t "${SUT_ID}" /usr/bin/oio-tool ping "${SUT_IP}:6000"
 }
 
 @test 'rawx - status' {
-  run curl -s "${SUT_IP}:6200/stat"
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
-  [[ "${output}" == *"counter req.hits"* ]]
-  [[ "${output}" == *"counter req.hits.raw 0"* ]]
+  retry_contains_output 10 1 "counter req.hits" curl "${CURL_OPTS[@]}" "${SUT_IP}:6200/stat"
+  retry_contains_output 10 1 "counter req.hits.raw 0" curl "${CURL_OPTS[@]}" "${SUT_IP}:6200/stat"
 }
 
 @test 'rdir - up' {
-  run nc -zv "${SUT_IP}" 6300
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
-  [[ "${output}" == *'succeeded'* ]] || [[ "${output}" == *'Connected to'* ]]
+  retry_contains_output 10 1 "succeeded" nc -zv "${SUT_IP}" 6300 \
+    || retry_contains_output 10 1 "Connected to" nc -zv "${SUT_IP}" 6300
 }
 
 @test 'Redis - up' {
-  run redis-cli -h "${SUT_IP}" -p 6011 ping
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
-  [[ "${output}" == *'PONG'* ]]
+  retry_contains_output 10 1 "PONG" redis-cli -h "${SUT_IP}" -p 6011 ping
 }
 
 @test 'Gridinit - Status of services' {
-  run docker exec -i "${SUT_ID}" /usr/bin/gridinit_cmd status
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" /usr/bin/gridinit_cmd status
 }
 
 @test 'Cluster - Status ' {
-  run docker exec -i "${SUT_ID}" bash -c 'openio cluster list -c Up -f csv --oio-ns OPENIO'
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
-  [[ ! "${output}" == *"False"* ]]
+  retry_contains_output 10 1 "Up" docker exec -t "${SUT_ID}" openio cluster list -c Up -f csv --oio-ns OPENIO
+  retry_refute_output 30 5 "False" docker exec -t "${SUT_ID}" openio cluster list -c Up -f csv --oio-ns OPENIO
 }
 
 @test 'Cluster - Score unlock' {
-  run docker exec -i "${SUT_ID}" bash -c 'openio cluster list -c Score -f csv --oio-ns OPENIO |sed -e "s@^@^@" |cat -evt'
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
-  [[ ! "${output}" == *"^0$"* ]]
+  retry_refute_output 10 1 '^0$' bash -c 'openio cluster list -c Score -f csv --oio-ns OPENIO |sed -e "s@^@^@" |cat -evt'
 }
 
 @test 'OIO - push object' {
-  run docker exec -i "${SUT_ID}" bash -c 'openio object create MY_CONTAINER /etc/passwd --oio-account MY_ACCOUNT --oio-ns OPENIO'
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" openio object create MY_CONTAINER /etc/passwd --oio-account MY_ACCOUNT --oio-ns OPENIO
 }
 
 @test 'OIO - show object' {
-  run docker exec -i "${SUT_ID}" bash -c 'openio container show MY_CONTAINER --oio-account MY_ACCOUNT --oio-ns OPENIO'
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" openio container show MY_CONTAINER --oio-account MY_ACCOUNT --oio-ns OPENIO
 }
 
 @test 'OIO - list objects' {
-  run docker exec -i "${SUT_ID}" bash -c 'openio object list --oio-account MY_ACCOUNT MY_CONTAINER --oio-ns OPENIO'
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" openio object list --oio-account MY_ACCOUNT MY_CONTAINER --oio-ns OPENIO
 }
 
 @test 'OIO - Find the services involved for your container' {
-  run docker exec -i "${SUT_ID}" bash -c 'openio container locate MY_CONTAINER --oio-account MY_ACCOUNT --oio-ns OPENIO'
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" openio container locate MY_CONTAINER --oio-account MY_ACCOUNT --oio-ns OPENIO
 }
 
 @test 'OIO - Consistency' {
-  md5orig=$(docker exec -i "${SUT_ID}" bash -c 'md5sum /etc/passwd | cut -d" " -f1')
-  md5sds=$(docker exec -i "${SUT_ID}" bash -c 'openio object list --oio-account MY_ACCOUNT MY_CONTAINER -c Hash -f value --oio-ns OPENIO|tr [A-Z] [a-z]')
-  run test "$md5orig" == "$md5sds"
-  echo "md5orig: ${md5orig}"
-  echo "md5sds: ${md5sds}"
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  run docker exec -t "${SUT_ID}" bash -c 'md5sum /etc/passwd | cut -d" " -f1'
+  assert_success
+  md5orig="${output}"
+
+  run docker exec -t "${SUT_ID}" bash -c "openio object list --oio-account MY_ACCOUNT MY_CONTAINER -c Hash -f value --oio-ns OPENIO|tr [A-Z] [a-z]"
+  assert_success
+  md5sds="${output}"
+
+  assert_equal "$md5orig" "$md5sds"
 }
 
 @test 'OIO - Delete your object' {
-  run docker exec -i "${SUT_ID}" bash -c 'openio object delete MY_CONTAINER passwd --oio-account MY_ACCOUNT --oio-ns OPENIO'
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" openio object delete MY_CONTAINER passwd --oio-account MY_ACCOUNT --oio-ns OPENIO
 }
 
 @test 'OIO - Delete your empty container' {
-  run docker exec -i "${SUT_ID}" bash -c 'openio container delete MY_CONTAINER --oio-account MY_ACCOUNT --oio-ns OPENIO'
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" openio container delete MY_CONTAINER --oio-account MY_ACCOUNT --oio-ns OPENIO
 }
 
 @test 'AWS - Get credentials' {
-  run docker exec -i "${SUT_ID}" bash -c 'grep demo /root/.aws/credentials'
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" grep demo /root/.aws/credentials
 }
 
 @test 'AWS - create bucket' {
-  run docker exec -i "${SUT_ID}" bash -c "aws --endpoint-url http://${SUT_IP}:6007 --no-verify-ssl s3 mb s3://mybucket"
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" aws --endpoint-url "http://${SUT_IP}:6007" --no-verify-ssl s3 mb s3://mybucket
 }
 
 @test 'AWS - upload into bucket' {
-  run docker exec -i "${SUT_ID}" bash -c "aws --endpoint-url http://${SUT_IP}:6007 --no-verify-ssl s3 cp /etc/passwd s3://mybucket"
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" aws --endpoint-url "http://${SUT_IP}:6007" --no-verify-ssl s3 cp /etc/passwd s3://mybucket
 }
 
 @test 'AWS - Consistency' {
-  md5orig=$(docker exec -i "${SUT_ID}" bash -c 'md5sum /etc/passwd | cut -d" " -f1')
-  docker exec -i "${SUT_ID}" bash -c "aws --endpoint-url http://${SUT_IP}:6007 --no-verify-ssl s3 cp s3://mybucket/passwd /tmp/passwd.aws"
-  md5sds=$(docker exec -i "${SUT_ID}" bash -c 'md5sum /tmp/passwd.aws | cut -d" " -f1')
-  run test "$md5orig" == "$md5sds"
-  echo "md5orig: ${md5orig}"
-  echo "md5sds: ${md5sds}"
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" bash -c 'md5sum /etc/passwd | cut -d" " -f1'
+  assert_success
+  md5orig="${output}"
+
+  retry 10 1 docker exec -t "${SUT_ID}" aws --endpoint-url "http://${SUT_IP}:6007" --no-verify-ssl s3 cp s3://mybucket/passwd /tmp/passwd.aws
+  assert_success
+
+  retry 10 1 docker exec -i "${SUT_ID}" bash -c 'md5sum /tmp/passwd.aws | cut -d" " -f1'
+  assert_success
+  md5aws="${output}"
+
+  assert_equal "$md5orig" "$md5aws"
 }
 
 @test 'AWS - Delete your object' {
-  run docker exec -i "${SUT_ID}" bash -c "aws --endpoint-url http://${SUT_IP}:6007 --no-verify-ssl s3 rm s3://mybucket/passwd"
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" aws --endpoint-url "http://${SUT_IP}:6007" --no-verify-ssl s3 rm s3://mybucket/passwd
 }
 
 @test 'AWS - Delete your empty bucket' {
-  run docker exec -i "${SUT_ID}" bash -c "aws --endpoint-url http://${SUT_IP}:6007 --no-verify-ssl s3 rb s3://mybucket"
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
+  retry 10 1 docker exec -t "${SUT_ID}" aws --endpoint-url "http://${SUT_IP}:6007" --no-verify-ssl s3 rb s3://mybucket
 }
 
 @test 'OIO - Delete accounts' {
-  run docker exec -i "${SUT_ID}" bash -c "openio account delete MY_ACCOUNT --oio-ns OPENIO"
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
-  run docker exec -i "${SUT_ID}" bash -c "openio account delete AUTH_demo --oio-ns OPENIO"
-  echo "output: ${output}"
-  echo "status: ${status}"
-  [[ "${status}" -eq "0" ]]
-
+  retry 10 1 docker exec -t "${SUT_ID}" openio account delete MY_ACCOUNT --oio-ns OPENIO
+  retry 10 1 docker exec -t "${SUT_ID}" openio account delete AUTH_demo --oio-ns OPENIO
 }

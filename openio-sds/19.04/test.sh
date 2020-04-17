@@ -14,9 +14,6 @@ docker run -d --name "${DOCKER_TEST_CONTAINER_NAME}" "${DOCKER_IMAGE_NAME}"
 TESTER_IMAGE_NAME=openio-sds-tester
 docker build -t "${TESTER_IMAGE_NAME}" "${CURRENT_DIR}"/../tester/
 
-# Wait a bit before all services are initialized
-sleep 90
-
 # Run tests
 docker run --rm -t \
     --network="container:${DOCKER_TEST_CONTAINER_NAME}" \

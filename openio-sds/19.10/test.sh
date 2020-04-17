@@ -8,14 +8,13 @@ test -n "${DOCKER_TEST_CONTAINER_NAME}" || ( echo "Error: variable DOCKER_TEST_C
 test -n "${DOCKER_IMAGE_NAME}" || ( echo "Error: variable DOCKER_IMAGE_NAME not set. Exiting." && exit 1 )
 
 # Launch an openio-sds container to test
+docker kill "${DOCKER_TEST_CONTAINER_NAME}" || true # Never fail to cleanup
+docker rm -f "${DOCKER_TEST_CONTAINER_NAME}" || true # Never fail to cleanup
 docker run -d --name "${DOCKER_TEST_CONTAINER_NAME}" "${DOCKER_IMAGE_NAME}"
 
 # Build the tester image
 TESTER_IMAGE_NAME=openio-sds-tester
 docker build -t "${TESTER_IMAGE_NAME}" "${CURRENT_DIR}"/../tester/
-
-# Wait a bit before all services are initialized
-sleep 90
 
 # Run tests
 docker run --rm -t \

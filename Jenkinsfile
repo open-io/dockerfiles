@@ -9,7 +9,8 @@ pipeline {
     timeout(activity: true, time: 600, unit: 'SECONDS')
   }
   parameters {
-    booleanParam(name: 'LATEST', defaultValue: false, description: 'Latest version ?')
+    booleanParam(name: 'LATEST', defaultValue: false, description: 'Update tag "latest" to this version?')
+    booleanParam(name: 'FORCE_DEPLOY', defaultValue: false, description: 'Force deployment step even if not on master branch?')
   }
   environment {
     PYTHONUNBUFFERED = '1'
@@ -69,6 +70,7 @@ pipeline {
 
           stage('test') {
             steps {
+              sh 'echo "Testing Docker Image ${DOCKER_IMAGE_NAME} from ${DOCKER_IMAGE_DIR}"'
               sh 'bash ${WORKSPACE}/${DOCKER_IMAGE_DIR}/test.sh'
             }
             post {
@@ -78,33 +80,38 @@ pipeline {
                   sh '''
                   docker kill ${DOCKER_TEST_CONTAINER_NAME} || true
                   docker rm -f -v ${DOCKER_TEST_CONTAINER_NAME} || true
-                  docker rmi -f ${DOCKER_IMAGE_NAME} || true
                   '''
                 }
               }
             }
           } // stage('test')
-          // stage('deploy') {
-          //   steps {
-          //     withCredentials([usernamePassword(credentialsId: 'ID_HUB_DOCKER', usernameVariable: 'docker_user', passwordVariable: 'docker_pass')]) {
-          //           sh "echo \${docker_pass} | docker login --password-stdin -u \${docker_user}"
-          //         }
-          //     script {
-          //       sh "docker push openio/sds:${SDS_RELEASE}"
 
-          //       if (params.LATEST) {
-          //         sh "docker tag openio/sds:${SDS_RELEASE} openio/sds:latest"
-          //         sh "docker push openio/sds:latest"
+          stage('deploy') {
+            environment {
+              LATEST = "${params.LATEST}"
+              DOCKER_HUB = credentials('ID_HUB_DOCKER') // Defines DOCKER_HUB_USR and DOCKER_HUB_PSW env variables
+            }
+            steps {
+              sh 'echo "Deploying Docker Image ${DOCKER_IMAGE_NAME} from ${DOCKER_IMAGE_DIR}"'
 
-          //       }
-          //     }
-          //   }
-          // } // stage('deploy')
+              // Log in local Docker to the remote registry
+              // sh 'echo ${DOCKER_HUB_PSW} | docker login --password-stdin -u ${DOCKER_HUB_USR}'
+
+              sh 'bash ${WORKSPACE}/${DOCKER_IMAGE_DIR}/deploy.sh'
+            }
+            when {
+              anyOf {
+                branch 'master'
+                buildingTag()
+                expression { return params.FORCE_DEPLOY }
+              }
+            }
+          } // stage('deploy')
         } // stages
         post {
           always {
+            sh 'docker rmi -f ${DOCKER_IMAGE_NAME} || true'
             sh 'chmod -R 777 ${WORKSPACE}'
-            cleanWs()
           }
         } // post
       } // matrix
