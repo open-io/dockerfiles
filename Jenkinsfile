@@ -99,7 +99,7 @@ pipeline {
               sh 'echo "Deploying Docker Image ${DOCKER_IMAGE_NAME} from ${DOCKER_IMAGE_DIR}"'
 
               // Log in local Docker to the remote registry
-              // sh 'echo ${DOCKER_HUB_PSW} | docker login --password-stdin -u ${DOCKER_HUB_USR}'
+              sh 'echo ${DOCKER_HUB_PSW} | docker login --password-stdin -u ${DOCKER_HUB_USR}'
 
               sh 'bash ${WORKSPACE}/${DOCKER_IMAGE_DIR}/deploy.sh'
             }
@@ -116,6 +116,7 @@ pipeline {
           always {
             sh 'docker rmi -f ${DOCKER_IMAGE_NAME} || true'
             sh 'chmod -R 777 ${WORKSPACE}'
+            cleanWs()
           }
         } // post
       } // matrix
