@@ -1,0 +1,171 @@
+---
+all:
+  hosts:
+    node1:
+      ansible_host: ID
+      openio_data_mounts:
+        - mountpoint: "/var/lib/oio/sds"
+          partition: "/dev/vdb"
+      openio_metadata_mounts:
+        - mountpoint: "/var/lib/oio/sds"
+          partition: "/dev/vdb"
+  vars:
+    ansible_user: root
+    ansible_connection: docker
+    openio_checks_filter:
+      reachability: false
+      mountpoint: false
+    openio_bootstrap: false
+    openio_maintenance_mode: false
+    openio_no_log: false
+    openio_mirror: mirror2.openio.io
+
+  children:
+    openio:
+      children:
+        fronts: {}
+        backs: {}
+
+      vars:
+        namespace: OPENIO
+        namespace_storage_policy: SINGLE
+
+        openio_bind_interface: '{{ ansible_default_ipv4.alias }}'
+        # bind 127.0.0.1 by default
+        openio_bind_address: "127.0.0.1"
+        # Remove zookeeper url
+        openio_namespace_zookeeper_url: ""
+        # Reduce service policy for a standalone node
+        openio_namespace_service_update_policy:
+          - name: meta2
+            policy: KEEP
+            replicas: 1
+            distance: 1
+          - name: rdir
+            policy: KEEP
+            replicas: 1
+            distance: 1
+        openio_rdir_location: "{{ ansible_hostname ~ '.1' }}"
+        openio_manage_os_requirement: false
+        openio_account_redis_standalone: "127.0.0.1:6011"
+
+        openio_oioswift_users:
+          - name: "demo:demo"
+            password: "DEMO_PASS"
+            roles:
+              - admin
+
+        #openio_conscience_multiple_enable: true
+        #openio_conscience_services_common_timeout: 30
+
+        ########
+        # Special needs
+        # ---- Low memory nodes (ARM, docker, ...)
+        openio_account_workers: 1
+        openio_oioswift_workers: 1
+        openio_event_agent_workers: 1
+        openio_zookeeper_parallel_gc_threads: 1
+        openio_zookeeper_memory: "256M"
+        openio_minimal_score_for_volume_admin_bootstrap: 5
+        openio_minimal_score_for_directory_bootstrap: 5
+        # ---- End Low memory nodes
+
+        # Reduce directory size
+        namespace_meta1_digits: 0
+
+    # what is not used for storage
+    fronts:
+      hosts: {}
+
+    # what is used for storage
+    backs:
+      hosts:
+        node1: {}
+
+### SDS
+    account:
+      children:
+        backs: {}
+
+    beanstalkd:
+      children:
+        backs: {}
+
+    conscience:
+      hosts:
+        node1: {}
+
+    conscience-agent:
+      children:
+        backs: {}
+
+    ecd: {}
+
+    meta:
+      children:
+        meta0: {}
+        meta1: {}
+        meta2: {}
+
+    meta0:
+      hosts:
+        node1: {}
+
+    meta1:
+      hosts:
+        node1: {}
+
+    meta2:
+      hosts:
+        node1: {}
+
+    namespace:
+      children:
+        openio: {}
+      vars:
+        openio_namespace_conscience_url: "{{ hostvars[groups['conscience'][0]]['openio_bind_address'] }}:6000"
+
+    oio-blob-indexer:
+      children:
+        backs: {}
+
+    oio-blob-rebuilder:
+      children: {}
+
+    oio-event-agent:
+      children:
+        backs: {}
+
+    oioproxy:
+      children:
+        openio: {}
+
+    oioswift:
+      children:
+        backs: {}
+      vars:
+        openio_oioswift_pipeline: "{{ pipeline_tempauth }}"
+        openio_oioswift_filter_tempauth:
+          "{{ {'use': 'egg:oioswift#tempauth'} | combine(openio_oioswift_users | dict_to_tempauth) }}"
+    rawx:
+      children:
+        backs: {}
+
+    rdir:
+      children:
+        backs: {}
+
+    redis:
+      hosts:
+        node1: {}
+
+    zookeeper: {}
+
+### OIOFS
+    oiofs:
+      hosts: {}
+      vars: {}
+
+    oiofs_redis:
+      hosts: {}
+...
