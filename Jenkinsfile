@@ -1,5 +1,5 @@
 pipeline {
-  agent none
+  agent any
   options {
     // Cleanup build older than 10 previous ones
     buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10')
@@ -22,7 +22,7 @@ pipeline {
   stages {
     stage('Shell Lint') {
       agent {
-        label 'docker'
+        label 'docker && small'
       }
       steps {
         sh '''
@@ -37,12 +37,12 @@ pipeline {
         axes {
           axis {
             name 'DOCKER_IMAGE_DIR'
-            values 'openio-sds/19.10', 'openio-sds/19.04','openio-sds/18.10' //,'openio-sds/18.04' // 1804 disabled because packages are missing
+            values 'openio-sds/20.04', 'openio-sds/19.10', 'openio-sds/19.04','openio-sds/18.10' //,'openio-sds/18.04' // 1804 disabled because packages are missing
           }
         }
         agent {
           dockerfile {
-            label 'docker'
+            label 'docker && big'
             dir "${DOCKER_IMAGE_DIR}/jenkins/"
             filename 'Dockerfile'
             args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
