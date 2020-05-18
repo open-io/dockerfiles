@@ -43,7 +43,7 @@ CURL_OPTS=("--insecure" "--fail" "--location" "--silent" "--verbose" "--show-err
 }
 
 @test 'OIO - push object' {
-  retry 10 1 docker exec -t "${SUT_ID}" openio object create MY_CONTAINER /etc/passwd --oio-account MY_ACCOUNT --oio-ns OPENIO
+  retry 12 5 docker exec -t "${SUT_ID}" openio object create MY_CONTAINER /etc/passwd --oio-account MY_ACCOUNT --oio-ns OPENIO
 }
 
 @test 'OIO - show object' {
