@@ -2,12 +2,13 @@
 
 set -eux -o pipefail
 
-test -n "${DOCKER_BUILD_CONTAINER_NAME}" || ( echo "Error: variable DOCKER_BUILD_CONTAINER_NAME not set. Exiting." && exit 1 )
-test -n "${DOCKER_IMAGE_NAME}" || ( echo "Error: variable DOCKER_IMAGE_NAME not set. Exiting." && exit 1 )
-
-OIOSDS_RELEASE=18.04
-export OIOSDS_RELEASE
 CURRENT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+OIOSDS_RELEASE="$(basename "${CURRENT_DIR}")"
+DOCKER_BUILD_CONTAINER_NAME="${DOCKER_BUILD_CONTAINER_NAME:-"openio-${OIOSDS_RELEASE}-builder"}"
+DOCKER_IMAGE_NAME="${DOCKER_IMAGE_NAME:-"openio/sds:${OIOSDS_RELEASE}"}"
+
+set -eux -o pipefail
+
 pushd "${CURRENT_DIR}"
 
 docker run --detach --name="${DOCKER_BUILD_CONTAINER_NAME}" --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro --hostname openiosds centos/systemd:latest /usr/sbin/init
