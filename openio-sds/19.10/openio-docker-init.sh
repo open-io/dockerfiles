@@ -204,6 +204,23 @@ function keystone_config(){
   fi
 }
 
+function iam_config(){
+  if [ -f "${IAM_RULES_FILE}" ]; then
+    echo "IAM rule file found at ${IAM_RULES_FILE}: setting up IAM authorization."
+
+    # Insert "iam" before swift3 in pipeline's setup
+    sed -i -e 's@^pipeline =\(.*\) swift3 \(.*\)@pipeline = \1 iam swift3 \2@' /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
+
+    # Point IAM setup to the rules file
+    cat <<EOF >> /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
+[filter:iam]
+use = egg:swift3#iam
+log_level = DEBUG
+connection = file://${IAM_RULES_FILE}
+EOF
+  fi
+}
+
 ### Main
 
 prepare
@@ -227,6 +244,9 @@ if [ ! -f /etc/oio/sds/firstboot ]; then
   set_region
   set_workers
   keystone_config
+
+  # Update IAM configuration
+  iam_config
 
   # Add supplementaries meta2
   add_meta2
