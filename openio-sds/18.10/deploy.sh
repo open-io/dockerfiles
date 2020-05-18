@@ -4,7 +4,10 @@ LATEST="${LATEST:-false}"
 
 set -eux -o pipefail
 
-test -n "${DOCKER_IMAGE_NAME}" || ( echo "Error: variable DOCKER_IMAGE_NAME not set. Exiting." && exit 1 )
+test -n "${DOCKER_IMAGE_NAME}" || {
+    echo "Error: variable DOCKER_IMAGE_NAME not set. Exiting."
+    exit 1
+}
 
 DEPLOY_IMAGE_NAME="openio/sds"
 DEPLOY_IMAGE_TAG="18.10"

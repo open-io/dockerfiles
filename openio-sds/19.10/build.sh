@@ -2,8 +2,14 @@
 
 set -eux -o pipefail
 
-test -n "${DOCKER_BUILD_CONTAINER_NAME}" || ( echo "Error: variable DOCKER_BUILD_CONTAINER_NAME not set. Exiting." && exit 1 )
-test -n "${DOCKER_IMAGE_NAME}" || ( echo "Error: variable DOCKER_IMAGE_NAME not set. Exiting." && exit 1 )
+test -n "${DOCKER_BUILD_CONTAINER_NAME}" || {
+  echo "Error: variable DOCKER_BUILD_CONTAINER_NAME not set. Exiting."
+  exit 1
+}
+test -n "${DOCKER_IMAGE_NAME}" || {
+  echo "Error: variable DOCKER_IMAGE_NAME not set. Exiting."
+  exit 1
+}
 
 OIOSDS_RELEASE=19.10
 CURRENT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
@@ -36,11 +42,17 @@ ansible openio -i inventory.yml -m shell -a "find /var/log/oio -type f | xargs -
 
 popd
 # Logs to stdout
-ansible node1 -i ansible-playbook-openio-deployment/products/sds/inventory.yml -m copy -a 'src=rsyslog.conf dest=/etc/rsyslog.d/openio-sds.conf mode=0644'
+ansible node1 -i ansible-playbook-openio-deployment/products/sds/inventory.yml -m copy -a 'src=../commons/rsyslog.conf dest=/etc/rsyslog.d/openio-sds.conf mode=0644'
 
-# Copy entrypoint
+# Copy required scripts
 ansible node1 -i ansible-playbook-openio-deployment/products/sds/inventory.yml -m copy -a 'src=openio-docker-init.sh dest=/openio-docker-init.sh mode=0755'
+ansible node1 -i ansible-playbook-openio-deployment/products/sds/inventory.yml -m copy -a 'src=../commons/sds-healthcheck.sh dest=/usr/local/bin/sds-healthcheck.sh mode=0755'
 
-docker commit --change='CMD ["/openio-docker-init.sh"]' --change "EXPOSE 6000 6001 6006 6007 6009 6011 6014 6017 6110 6120 6200 6300" "${DOCKER_BUILD_CONTAINER_NAME}" "${DOCKER_IMAGE_NAME}"
+docker commit \
+  --change='CMD ["/openio-docker-init.sh"]' \
+  --change "EXPOSE 6000 6001 6006 6007 6009 6011 6014 6017 6110 6120 6200 6300" \
+  --change='HEALTHCHECK --start-period=5s --retries=30 --interval=10s --timeout=2s CMD bash /usr/local/bin/sds-healthcheck.sh' \
+  "${DOCKER_BUILD_CONTAINER_NAME}" "${DOCKER_IMAGE_NAME}"
+
 docker stop "${DOCKER_BUILD_CONTAINER_NAME}"
 docker rm -f -v "${DOCKER_BUILD_CONTAINER_NAME}"
