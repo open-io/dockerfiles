@@ -30,8 +30,8 @@ sed -i -e "s@ansible_host: ID@ansible_host: ${DOCKER_BUILD_CONTAINER_NAME}@" inv
 # Deploy without bootstrap
 ansible all -m package -a name=iproute
 
-
-ansible-playbook -i inventory.yml main.yml --skip-tags checks -e strategy=mitogen_free
+# Deploy without bootstrap
+ansible-playbook -i "${INVENTORY_FILE}" main.yml --skip-tags checks -e strategy=mitogen_free
 
 # Fix redis: remove cluster mode
 ansible openio -i inventory.yml -m shell -a 'sed -i -e "/slaveof/d" /etc/oio/sds/OPENIO/redis-0/redis.conf; rm /etc/gridinit.d/OPENIO-redissentinel-0.conf'
