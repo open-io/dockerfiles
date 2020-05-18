@@ -14,7 +14,31 @@ DOCKER_IMAGE_NAME="${DOCKER_IMAGE_NAME:-"openio/sds:${OIOSDS_RELEASE}"}"
 
 pushd "${OIOSDS_DIR}"
 
-docker run --detach --name="${DOCKER_BUILD_CONTAINER_NAME}" --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro --hostname openiosds centos/systemd:latest /usr/sbin/init
+OIO_DEPLOYMENT_DIR="${OIOSDS_DIR}/ansible-playbook-openio-deployment"
+
+rm -rf "${OIO_DEPLOYMENT_DIR}"
+git clone -b "${OIOSDS_RELEASE}" https://github.com/open-io/ansible-playbook-openio-deployment.git "${OIO_DEPLOYMENT_DIR}"
+
+### Inventory selection:
+# We check the custom (local) inventory to determine
+# the syntax (INI or YAML?), which depends on the version of SDS.
+INVENTORY_FILE="inventory.yml"
+if [ ! -f "${OIOSDS_DIR}/${INVENTORY_FILE}" ]
+then
+  INVENTORY_FILE="inventory.ini"
+  if [ ! -f "${OIOSDS_DIR}/${INVENTORY_FILE}" ]
+  then
+    echo "ERROR: Could not find any deployment inventory at ${OIOSDS_DIR}/inventory.yml neither at ${OIOSDS_DIR}/inventory.ini."
+    exit 1
+  fi
+fi
+
+# Overide deployment inventory by the custom one
+cp "${OIOSDS_DIR}/${INVENTORY_FILE}" "${OIO_DEPLOYMENT_DIR}/products/sds/${INVENTORY_FILE}"
+pushd "${OIO_DEPLOYMENT_DIR}/products/sds"
+
+# Start builder container
+docker run --detach --name="${DOCKER_BUILD_CONTAINER_NAME}" --tmpfs=/run --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro --hostname openiosds centos/systemd:latest /usr/sbin/init
 
 rm -rf ansible-playbook-openio-deployment
 git clone -b "${OIOSDS_RELEASE}" https://github.com/open-io/ansible-playbook-openio-deployment.git
