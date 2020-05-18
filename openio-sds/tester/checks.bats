@@ -4,6 +4,9 @@ load "${BATS_HELPERS_DIR}/load.bash"
 
 CURL_OPTS=("--insecure" "--fail" "--location" "--silent" "--verbose" "--show-error")
 
+@test "OpenIO SDS Container is up and healthy" {
+  retry_contains_output 36 5 '"healthy"' docker inspect -f '{{json .State.Health.Status}}' "${SUT_ID}"
+}
 
 # Tests
 @test 'Account - status' {
@@ -43,7 +46,7 @@ CURL_OPTS=("--insecure" "--fail" "--location" "--silent" "--verbose" "--show-err
 }
 
 @test 'OIO - push object' {
-  retry 10 1 docker exec -t "${SUT_ID}" openio object create MY_CONTAINER /etc/passwd --oio-account MY_ACCOUNT --oio-ns OPENIO
+  retry 12 5 docker exec -t "${SUT_ID}" openio object create MY_CONTAINER /etc/passwd --oio-account MY_ACCOUNT --oio-ns OPENIO
 }
 
 @test 'OIO - show object' {
