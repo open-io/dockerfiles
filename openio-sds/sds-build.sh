@@ -64,10 +64,10 @@ ansible openio -i inventory.yml -m shell -a "find /var/log/oio -type f | xargs -
 
 popd
 # Logs to stdout
-ansible node1 -i ansible-playbook-openio-deployment/products/sds/inventory.yml -m copy -a 'src=rsyslog.conf dest=/etc/rsyslog.d/openio-sds.conf mode=0644'
+ansible node1 -i ansible-playbook-openio-deployment/products/sds/inventory.yml -m copy -a "src=${OIOSDS_DIR}/rsyslog.conf dest=/etc/rsyslog.d/openio-sds.conf mode=0644"
 
 # Copy entrypoint
-ansible node1 -i ansible-playbook-openio-deployment/products/sds/inventory.yml -m copy -a 'src=openio-docker-init.sh dest=/openio-docker-init.sh mode=0755'
+ansible node1 -i ansible-playbook-openio-deployment/products/sds/inventory.yml -m copy -a "src=${OIOSDS_DIR}/openio-docker-init.sh dest=/openio-docker-init.sh mode=0755"
 
 docker commit \
   --change='CMD ["/openio-docker-init.sh"]' \
