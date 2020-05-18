@@ -20,4 +20,5 @@ docker run --rm -t \
     -e "SUT_ID=${DOCKER_TEST_CONTAINER_NAME}" \
     -e SUT_IP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${DOCKER_TEST_CONTAINER_NAME}")" \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    "${TESTER_IMAGE_NAME}"
+    "${TESTER_IMAGE_NAME}" \
+|| ( docker logs "${DOCKER_TEST_CONTAINER_NAME}" && df -h && exit 1)

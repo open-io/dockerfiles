@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # Default configuration
 NS='OPENIO'
 NBREPLICAS=1
