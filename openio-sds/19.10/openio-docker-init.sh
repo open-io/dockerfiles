@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Default configuration
 NS='OPENIO'
@@ -11,7 +11,7 @@ function prepare(){
 }
 
 function update_swift_credentials(){
-  if [ ! -z "${SWIFT_CREDENTIALS}" ]; then
+  if [ -n "${SWIFT_CREDENTIALS}" ]; then
     # Remove default credentials
     sed -i -e '/user_demo_demo = DEMO_PASS .member/d' \
       /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
@@ -37,7 +37,7 @@ function update_swift_credentials(){
 }
 
 function set_region(){
-  if [ ! -z "${REGION}" ]; then
+  if [ -n "${REGION}" ]; then
     echo "> Change S3 region"
     sed -i -e "s@location = us-east-1@location = ${REGION}@" /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
     sed -i -e "s@region = us-east-1@region = ${REGION}@" /root/.aws/config
@@ -47,7 +47,7 @@ function set_region(){
 }
 
 function set_workers(){
-  if [ ! -z "${WORKERS}" ]; then
+  if [ -n "${WORKERS}" ]; then
     echo "> Change S3 workers"
     sed -i -e "s@workers = 1@workers = ${WORKERS}@" /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
   else
@@ -56,49 +56,49 @@ function set_workers(){
 }
 
 function add_meta2(){
-  if [ ! -z "${SUPPL_M2}" ]; then
+  if [ -n "${SUPPL_M2}" ]; then
     echo "> Add supplementaries meta2"
-    for i in $(seq 1 $SUPPL_M2); do
+    for i in $(seq 1 "$SUPPL_M2"); do
       # meta2
-      install -d -o openio -g openio -m 755 /var/lib/oio/sds/OPENIO/meta2-$i
-      cp -a -r /etc/oio/sds/OPENIO/meta2-0/ /etc/oio/sds/OPENIO/meta2-${i}
-      mv /etc/oio/sds/OPENIO/meta2-${i}/meta2-0.conf /etc/oio/sds/OPENIO/meta2-${i}/meta2-${i}.conf
-      cp -a /etc/gridinit.d/OPENIO-meta2-0.conf /etc/gridinit.d/OPENIO-meta2-${i}.conf
+      install -d -o openio -g openio -m 755 "/var/lib/oio/sds/OPENIO/meta2-${i}"
+      cp -a -r /etc/oio/sds/OPENIO/meta2-0/ "/etc/oio/sds/OPENIO/meta2-${i}"
+      mv "/etc/oio/sds/OPENIO/meta2-${i}/meta2-0.conf" "/etc/oio/sds/OPENIO/meta2-${i}/meta2-${i}.conf"
+      cp -a /etc/gridinit.d/OPENIO-meta2-0.conf "/etc/gridinit.d/OPENIO-meta2-${i}.conf"
       sed -i \
-        -e "s/meta2-0/meta2-$i/g" -e "s/6120/$((6120 + $i))/" \
-        -e "s/OPENIO,meta2,0/OPENIO,meta2,$i/" \
-        /etc/gridinit.d/OPENIO-meta2-$i.conf
-      cp -a /etc/oio/sds/OPENIO/watch/meta2-0.yml /etc/oio/sds/OPENIO/watch/meta2-$i.yml
+        -e "s/meta2-0/meta2-${i}/g" -e "s/6120/$((6120 + i))/" \
+        -e "s/OPENIO,meta2,0/OPENIO,meta2,${i}/" \
+        "/etc/gridinit.d/OPENIO-meta2-${i}.conf"
+      cp -a /etc/oio/sds/OPENIO/watch/meta2-0.yml "/etc/oio/sds/OPENIO/watch/meta2-${i}.yml"
       sed -i \
-        -e "s/meta2-0/meta2-$i/g" \
-        -e "s/6120/$((6120 + $i))/" \
-        -e "s@location: openiosds.0@location: openiosds.$i@" \
-        /etc/oio/sds/OPENIO/watch/meta2-$i.yml
+        -e "s/meta2-0/meta2-${i}/g" \
+        -e "s/6120/$((6120 + i))/" \
+        -e "s@location: openiosds.0@location: openiosds.${i}@" \
+        "/etc/oio/sds/OPENIO/watch/meta2-${i}.yml"
 
       # rdir
-      install -d -o openio -g openio -m 755 /var/lib/oio/sds/OPENIO/rdir-$i
+      install -d -o openio -g openio -m 755 "/var/lib/oio/sds/OPENIO/rdir-${i}"
       sed -i \
         -e "s@location: openiosds.1@location: openiosds.0@" \
         /etc/oio/sds/OPENIO/watch/rdir-0.yml
-      install -d -o openio -g openio -m 755  /var/lib/oio/sds/OPENIO/rdir-$i
-      cp -a -r /etc/oio/sds/OPENIO/rdir-0/ /etc/oio/sds/OPENIO/rdir-${i}
-      mv /etc/oio/sds/OPENIO/rdir-${i}/rdir-0.conf /etc/oio/sds/OPENIO/rdir-${i}/rdir-${i}.conf
+      install -d -o openio -g openio -m 755 "/var/lib/oio/sds/OPENIO/rdir-${i}"
+      cp -a -r /etc/oio/sds/OPENIO/rdir-0/ "/etc/oio/sds/OPENIO/rdir-${i}"
+      mv "/etc/oio/sds/OPENIO/rdir-${i}/rdir-0.conf" "/etc/oio/sds/OPENIO/rdir-${i}/rdir-${i}.conf"
       sed -i \
-        -e "s/6300/$((6300 + $i))/" \
-        -e "s/rdir-0/rdir-$i/" -e "s/rdir,0/rdir,$i/" \
-        /etc/oio/sds/OPENIO/rdir-${i}/rdir-${i}.conf
-      cp -a /etc/gridinit.d/OPENIO-rdir-0.conf /etc/gridinit.d/OPENIO-rdir-${i}.conf
+        -e "s/6300/$((6300 + i))/" \
+        -e "s/rdir-0/rdir-${i}/" -e "s/rdir,0/rdir,${i}/" \
+        "/etc/oio/sds/OPENIO/rdir-${i}/rdir-${i}.conf"
+      cp -a /etc/gridinit.d/OPENIO-rdir-0.conf "/etc/gridinit.d/OPENIO-rdir-${i}.conf"
       sed -i \
-        -e "s/rdir-0/rdir-$i/g" \
-        -e "s/6300/$((6300 + $i))/" \
-        -e "s/OPENIO,rdir,0/OPENIO,rdir,$i/" \
-        /etc/gridinit.d/OPENIO-rdir-$i.conf
-      cp -a /etc/oio/sds/OPENIO/watch/rdir-0.yml /etc/oio/sds/OPENIO/watch/rdir-$i.yml
+        -e "s/rdir-0/rdir-${i}/g" \
+        -e "s/6300/$((6300 + i))/" \
+        -e "s/OPENIO,rdir,0/OPENIO,rdir,${i}/" \
+        "/etc/gridinit.d/OPENIO-rdir-${i}.conf"
+      cp -a /etc/oio/sds/OPENIO/watch/rdir-0.yml "/etc/oio/sds/OPENIO/watch/rdir-${i}.yml"
       sed -i \
-        -e "s/rdir-0/rdir-$i/g" \
-        -e "s/6300/$((6300 + $i))/" \
-        -e "s@location: openiosds.0@location: openiosds.$i@" \
-        /etc/oio/sds/OPENIO/watch/rdir-$i.yml
+        -e "s/rdir-0/rdir-${i}/g" \
+        -e "s/6300/$((6300 + i))/" \
+        -e "s@location: openiosds.0@location: openiosds.${i}@" \
+        "/etc/oio/sds/OPENIO/watch/rdir-${i}.yml"
 
     done
 
@@ -118,28 +118,28 @@ function initcluster(){
 
   echo "> Waiting for the services to start ..."
   etime_start=$(date +"%s")
-  etime_end=$((${etime_start} + ${TIMEOUT}))
+  etime_end=$((etime_start + TIMEOUT))
   nbmeta1=0
-  while [ $(date +"%s") -le ${etime_end} -a ${nbmeta1} -lt ${NBREPLICAS} ]
+  while [ "$(date +"%s")" -le "${etime_end}" ] && [ "${nbmeta1}" -lt "${NBREPLICAS}" ]
   do
     sleep 2
     # Count registered meta1
     nbmeta1=$(/usr/bin/openio --oio-ns=${NS} cluster list meta1 -f value -c Addr|wc -l)
   done
-  if [ ${nbmeta1} -ne ${NBREPLICAS} ]; then
+  if [ "${nbmeta1}" -ne "${NBREPLICAS}" ]; then
     echo "Error: Install script did not found ${NBREPLICAS} meta1 services registered. Return: ${nbmeta1}"
     exit 1
   fi
   etime_start=$(date +"%s")
-  etime_end=$((${etime_start} + ${TIMEOUT}))
+  etime_end=$((etime_start + TIMEOUT))
   score=0
-  while [ $(date +"%s") -le ${etime_end} -a ${score} -eq 0 ]
+  while [ "$(date +"%s")" -le "${etime_end}" ] && [ "${score}" -eq 0 ]
   do
     /usr/bin/openio --oio-ns=${NS} cluster unlockall >/dev/null 2>&1
     sleep 5
     score=$(/usr/bin/openio --oio-ns=${NS} cluster list meta1 -f value -c Score || echo 0)
   done
-  if [ ${score} -eq 0 ]; then
+  if [ "${score}" -eq 0 ]; then
     echo "Error: Unlocking scores failed. Unable to bootstrap namespace. Return: Meta1 score = ${score}"
     exit 1
   fi
@@ -171,15 +171,15 @@ function set_unlock(){
 function unlock(){
   echo "> Unlocking scores ..."
   etime_start=$(date +"%s")
-  etime_end=$((${etime_start} + ${TIMEOUT}))
+  etime_end=$((etime_start + TIMEOUT))
   nbscore=1
-  while [ $(date +"%s") -le ${etime_end} -a ${nbscore} -gt 0 ]
+  while [ "$(date +"%s")" -le "${etime_end}" ] && [ "${nbscore}" -gt 0 ]
   do
     /usr/bin/openio --oio-ns=${NS} cluster unlockall >/dev/null 2>&1
     sleep 5
     nbscore=$(/usr/bin/openio --oio-ns=${NS} cluster list -f value -c Score|grep -c -e '^0$')
   done
-  if [ ${nbscore} -gt 0 ]; then
+  if [ "${nbscore}" -gt 0 ]; then
     echo "Error: Unlocking scores failed."
     exit 1
   fi
@@ -192,7 +192,7 @@ function gridinit_start(){
 }
 
 function keystone_config(){
-  if [ ! -z "$KEYSTONE_ENABLED" ]; then
+  if [ -n "$KEYSTONE_ENABLED" ]; then
     echo "Setting up Openstack Keystone authentication"
     : "${KEYSTONE_URI:=${IPADDR}:5000}"
     : "${KEYSTONE_URL:=${IPADDR}:35357}"
@@ -211,10 +211,10 @@ prepare
 # Firstboot script to setup OpenIO configuration
 if [ ! -f /etc/oio/sds/firstboot ]; then
   echo "# Firstboot: Setting up the OpenIO cluster"
-  if [ ! -z "${OPENIO_IPADDR}" ]; then
+  if [ -n "${OPENIO_IPADDR}" ]; then
     IPADDR=${OPENIO_IPADDR}
-  elif [ ! -z "${OPENIO_IFDEV}" ]; then
-    IPADDR=$(ip -4 addr show ${OPENIO_IFDEV} | awk '/inet/ {print $2}' | sed 's#/.*##')
+  elif [ -n "${OPENIO_IFDEV}" ]; then
+    IPADDR=$(ip -4 addr show "${OPENIO_IFDEV}" | awk '/inet/ {print $2}' | sed 's#/.*##')
     if [ -z "${IPADDR}" ]; then
       echo "Error: Failed to get IP for device ${OPENIO_IFDEV}"
     fi
@@ -232,7 +232,7 @@ if [ ! -f /etc/oio/sds/firstboot ]; then
   add_meta2
 
   # Update listenning address
-  if [ ! -z "${IPADDR}" ]; then
+  if [ -n "${IPADDR}" ]; then
     echo "> Using ${IPADDR} IP address for services"
     /usr/bin/find /etc/oio /etc/gridinit.d /root -type f -print0 | xargs --no-run-if-empty -0 sed -i "s/127.0.0.1/${IPADDR}/g"
   fi

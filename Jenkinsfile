@@ -27,7 +27,7 @@ pipeline {
       steps {
         sh '''
         docker run --rm -t -v ${WORKSPACE}:${WORKSPACE}:ro koalaman/shellcheck-alpine \
-          sh -x -c "find ${WORKSPACE}/openio-sds -type f -name *.bats -or -name build.sh -or -name test.sh | grep -v ansible-playbook-openio-deployment \
+          sh -x -c "find ${WORKSPACE}/openio-sds -type f -name *.bats -or -name build.sh -or -name test.sh -or -name openio-docker-init.sh | grep -v ansible-playbook-openio-deployment \
           | xargs -I- shellcheck -"
         '''
       }
