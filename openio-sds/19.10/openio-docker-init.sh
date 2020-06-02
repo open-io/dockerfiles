@@ -234,7 +234,7 @@ if [ ! -f /etc/oio/sds/firstboot ]; then
   # Update listenning address
   if [ ! -z "${IPADDR}" ]; then
     echo "> Using ${IPADDR} IP address for services"
-    /usr/bin/find /etc/oio /etc/gridinit.d /root -type f -print0 | xargs --no-run-if-empty -0 sed -i "s/127.0.0.1/${IPADDR}/g"
+    /usr/bin/find /etc/oio /etc/gridinit.d /root /usr/bin/openio-basic-checks -type f -print0 | xargs --no-run-if-empty -0 sed -i "s/127.0.0.1/${IPADDR}/g"
   fi
 
   # Deploy OpenIO
