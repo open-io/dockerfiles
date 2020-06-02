@@ -41,6 +41,9 @@ ansible openio -i inventory.yml -m shell -a 'sed -i -e "/slaveof/d" /etc/oio/sds
 ansible openio -i inventory.yml -m shell -a "find /var/log/oio -type f | xargs -n1 cp /dev/null"
 
 popd
+
+ansible node1 -i ansible-playbook-openio-deployment/products/sds/inventory.yml -m lineinfile -a 'path=/etc/oio/sds/OPENIO/watch/rdir-0.yml regexp="location: openiosds.0" line="location: openiosds.1"'
+
 # Logs to stdout
 ansible node1 -i ansible-playbook-openio-deployment/products/sds/inventory.yml -m copy -a 'src=../commons/rsyslog.conf dest=/etc/rsyslog.d/openio-sds.conf mode=0644'
 

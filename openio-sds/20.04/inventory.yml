@@ -45,7 +45,6 @@ all:
             policy: KEEP
             replicas: 1
             distance: 1
-        openio_rdir_location: "{{ ansible_hostname ~ '.1' }}"
         openio_manage_os_requirement: false
         openio_account_redis_standalone: "127.0.0.1:6011"
 
