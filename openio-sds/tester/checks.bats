@@ -9,6 +9,25 @@ CURL_OPTS=("--insecure" "--fail" "--location" "--silent" "--verbose" "--show-err
 }
 
 # Tests
+@test "All occurrences of '127.0.0.1' in the configuration have been replaced" {
+  run docker exec -t "${SUT_ID}" grep -rI '127.0.0.1' /etc/oio /etc/gridinit.d /root/checks.sh
+  assert_failure 1 # grep should return exit code "1" for "pattern not found"
+  refute_output --partial '127.0.0.1' # No occurence found in the output
+}
+
+@test "The configuration defines a distance not null between the rawx and the rdir" {
+  local rdir_location rawx_location
+  rdir_location="$(docker exec -t "${SUT_ID}" openio --oio-ns OPENIO cluster list  -c Location rdir  -f value)"
+  assert_success
+  assert test -n "${rdir_location}"
+
+  rawx_location="$(docker exec -t "${SUT_ID}" openio --oio-ns OPENIO cluster list  -c Location rawx  -f value)"
+  assert_success
+  assert test -n "${rawx_location}"
+
+  assert [ "${rdir_location}" != "${rawx_location}" ]
+}
+
 @test 'Account - status' {
   run retry 60 2 curl "${CURL_OPTS[@]}" "${SUT_IP}:6009/status"
   assert_success
