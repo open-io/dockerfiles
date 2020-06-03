@@ -1,0 +1,17 @@
+---
+## Note that all variables (e.g. "${xxx}" forms) are defined from the environment,
+
+version: '2.4' # Using version 2.X for inheritance support and because 3.x is aimed for Docker Swarm
+
+services:
+  sut:
+    image: ${DOCKER_IMAGE_NAME}
+
+  tester:
+    build:
+      context: ./
+    environment:
+      - SUT_ID=${COMPOSE_PROJECT_NAME:-default}_sut_1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+...

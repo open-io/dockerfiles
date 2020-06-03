@@ -19,7 +19,6 @@ First set up the environement:
 export SDS_VERSION=18.10
 export DOCKER_IMAGE_NAME="openio-sds-${SDS_VERSION}"
 export DOCKER_BUILD_CONTAINER_NAME="openio-sds-${SDS_VERSION}-build"
-export DOCKER_TEST_CONTAINER_NAME="openio-sds-${SDS_VERSION}-test"
 
 # Get the source
 git clone https://github.com/open-io/dockerfiles.git
@@ -40,9 +39,7 @@ docker run --rm -t -v /var/run/docker.sock:/var/run/docker.sock -u root -v "$(pw
 Now, execute the test harness on this newly built image:
 
 ```shell
-docker run --rm -t -v /var/run/docker.sock:/var/run/docker.sock -u root -v "$(pwd):$(pwd)" -w "$(pwd)" \
-    -e DOCKER_BUILD_CONTAINER_NAME -e DOCKER_IMAGE_NAME -e DOCKER_TEST_CONTAINER_NAME  "openio-sds-docker-builder:${SDS_VERSION}" \
-        bash "./openio-sds/${SDS_VERSION}/test.sh"
+bash "./openio-sds/${SDS_VERSION}/test.sh"
 ```
 
 Finally, if you want to tag and deploy the image, execute the `deploy.sh` script:

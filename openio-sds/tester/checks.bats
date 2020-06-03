@@ -4,6 +4,11 @@ load "${BATS_HELPERS_DIR}/load.bash"
 
 CURL_OPTS=("--insecure" "--fail" "--location" "--silent" "--verbose" "--show-error")
 
+export SUT_ID # Provided by caller
+
+SUT_IP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${SUT_ID}")"
+export SUT_IP
+
 @test "OpenIO SDS Container is up and healthy" {
   retry_contains_output 36 5 '"healthy"' docker inspect -f '{{json .State.Health.Status}}' "${SUT_ID}"
 }

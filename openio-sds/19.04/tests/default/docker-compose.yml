@@ -1,0 +1,17 @@
+---
+# Note that all variables (e.g. "${xxx}" forms) are defined from the environment,
+
+# Using version 2.X for inheritance support and because 3.x is aimed for Docker Swarm
+version: '2.4'
+
+services:
+  sut:
+    extends:
+      file: ../../../tester/commons-compose.yml
+      service: sut
+
+  tester:
+    extends:
+      file: ../../../tester/commons-compose.yml
+      service: tester
+...
