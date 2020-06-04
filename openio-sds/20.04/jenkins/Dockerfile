@@ -4,6 +4,7 @@ RUN apk add --no-cache \
     bash \
     curl \
     docker-cli \
+    jq \
     git \
     python3 \
     py3-pip \
