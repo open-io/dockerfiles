@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LATEST="${LATEST:-false}"
+LATEST=true
 
 set -eux -o pipefail
 

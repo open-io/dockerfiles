@@ -9,7 +9,6 @@ pipeline {
     timeout(activity: true, time: 600, unit: 'SECONDS')
   }
   parameters {
-    booleanParam(name: 'LATEST', defaultValue: false, description: 'Update tag "latest" to this version?')
     booleanParam(name: 'FORCE_DEPLOY', defaultValue: false, description: 'Force deployment step even if not on master branch?')
   }
   environment {
@@ -92,7 +91,6 @@ pipeline {
 
           stage('deploy') {
             environment {
-              LATEST = "${params.LATEST}"
               DOCKER_HUB = credentials('ID_HUB_DOCKER') // Defines DOCKER_HUB_USR and DOCKER_HUB_PSW env variables
             }
             steps {
