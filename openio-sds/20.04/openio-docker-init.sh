@@ -198,9 +198,48 @@ function keystone_config(){
     : "${KEYSTONE_URL:=${IPADDR}:35357}"
     : "${SWIFT_USERNAME:=swift}"
     : "${SWIFT_PASSWORD:=SWIFT_PASS}"
-    sed -i -e "/filter:tempauth/i [filter:s3token]\ndelay_auth_decision = True\nauth_uri = http://${KEYSTONE_URL}/\nuse = egg:swift3#s3token\n\n[filter:authtoken]\nauth_type = password\nusername = ${SWIFT_USERNAME}\nproject_name = service\nregion_name = ${REGION}\nuser_domain_id = default\nmemcache_secret_key = memcache_secret_key\npaste.filter_factory = keystonemiddleware.auth_token:filter_factory\ninsecure = True\ncache = swift.cache\ndelay_auth_decision = True\ntoken_cache_time = 300\nauth_url =http://${KEYSTONE_URL}\ninclude_service_catalog = False\nwww_authenticate_uri = http://${KEYSTONE_URI}\nmemcached_servers = ${IPADDR}:6019\npassword = ${SWIFT_PASSWORD}\nrevocation_cache_time = 60\nmemcache_security_strategy = ENCRYPT\nproject_domain_id = default\n\n[filter:keystoneauth]\nuse = egg:swift#keystoneauth\noperator_roles = admin,swiftoperator,_member_\n" /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
-    sed -i -e '/filter:tempauth/,+2d' /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
-    sed -i -e 's@^pipeline =.*@pipeline = catch_errors gatekeeper healthcheck proxy-logging cache bulk tempurl proxy-logging authtoken swift3 s3token keystoneauth proxy-logging copy slo dlo versioned_writes proxy-logging proxy-server@' /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
+    sed -i -e 's@^pipeline =\(.*\) swift3 tempauth \(.*\)@pipeline = \1 authtoken swift3 s3token keystoneauth \2@' /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
+    cat <<EOF >> /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
+[filter:keystoneauth]
+use = egg:swift#keystoneauth
+operator_roles = admin,swiftoperator,_member_
+
+[filter:s3token]
+use = egg:swift3#s3token
+auth_type = password
+username = swift
+project_name = service
+project_domain_id = default
+user_domain_id = default
+delay_auth_decision = True
+auth_uri = http://${KEYSTONE_URI}
+auth_url = http://${KEYSTONE_URL}
+password = ${SWIFT_PASSWORD}
+http_timeout = 60
+secret_cache_duration = 60
+
+[filter:authtoken]
+auth_type = password
+username = swift
+project_name = service
+region_name = ${REGION}
+user_domain_id = default
+memcache_secret_key = memcache_secret_key
+paste.filter_factory = keystonemiddleware.auth_token:filter_factory
+insecure = True
+cache = swift.cache
+delay_auth_decision = True
+token_cache_time = 300
+auth_url = http://${KEYSTONE_URL}
+include_service_catalog = False
+www_authenticate_uri = http://${KEYSTONE_URI}
+memcached_servers = ${IPADDR}:6019
+password =  ${SWIFT_PASSWORD}
+revocation_cache_time = 60
+memcache_security_strategy = ENCRYPT
+project_domain_id = default
+
+EOF
   fi
 }
 
