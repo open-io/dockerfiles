@@ -200,7 +200,7 @@ function keystone_config(){
     : "${SWIFT_PASSWORD:=SWIFT_PASS}"
     sed -i -e "/filter:tempauth/i [filter:s3token]\ndelay_auth_decision = True\nauth_uri = http://${KEYSTONE_URL}/\nuse = egg:swift3#s3token\n\n[filter:authtoken]\nauth_type = password\nusername = ${SWIFT_USERNAME}\nproject_name = service\nregion_name = ${REGION}\nuser_domain_id = default\nmemcache_secret_key = memcache_secret_key\npaste.filter_factory = keystonemiddleware.auth_token:filter_factory\ninsecure = True\ncache = swift.cache\ndelay_auth_decision = True\ntoken_cache_time = 300\nauth_url =http://${KEYSTONE_URL}\ninclude_service_catalog = False\nwww_authenticate_uri = http://${KEYSTONE_URI}\nmemcached_servers = ${IPADDR}:6019\npassword = ${SWIFT_PASSWORD}\nrevocation_cache_time = 60\nmemcache_security_strategy = ENCRYPT\nproject_domain_id = default\n\n[filter:keystoneauth]\nuse = egg:swift#keystoneauth\noperator_roles = admin,swiftoperator,_member_\n" /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
     sed -i -e '/filter:tempauth/,+2d' /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
-    sed -i -e 's@^pipeline =.*@pipeline = catch_errors gatekeeper healthcheck proxy-logging cache bulk tempurl proxy-logging authtoken swift3 s3token keystoneauth proxy-logging copy container-quotas account-quotas slo dlo versioned_writes proxy-logging proxy-server@' /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
+    sed -i -e 's@^pipeline =.*@pipeline = catch_errors gatekeeper healthcheck proxy-logging cache bulk tempurl proxy-logging authtoken swift3 s3token keystoneauth proxy-logging copy slo dlo versioned_writes proxy-logging proxy-server@' /etc/oio/sds/OPENIO/oioswift-0/proxy-server.conf
   fi
 }
 
