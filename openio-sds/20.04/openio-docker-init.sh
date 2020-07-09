@@ -112,7 +112,7 @@ function initcluster(){
   # Temporarily disabling the swift gateway, to avoid answering when not completely setup
   sed -i -e 's/^enabled=.*$/enabled=false/' /etc/gridinit.d/OPENIO-oioswift-0.conf
 
-	rm /etc/oio/sds/OPENIO/conscience-0/conscience-0-persistence.dat
+  rm /etc/oio/sds/OPENIO/conscience-0/conscience-0-persistence.dat
   echo "> Starting services"
   /usr/bin/gridinit -d /etc/gridinit.conf >/dev/null 2>&1
 
@@ -237,6 +237,8 @@ if [ ! -f /etc/oio/sds/firstboot ]; then
     /usr/bin/find /etc/oio /etc/gridinit.d /root /usr/bin/openio-basic-checks -type f -print0 | xargs --no-run-if-empty -0 sed -i "s/127.0.0.1/${IPADDR}/g"
   fi
 
+  # Activate logs
+  /usr/sbin/rsyslogd
   # Deploy OpenIO
   initcluster
 
@@ -250,8 +252,6 @@ fi
 # Re-enabling the swift gateway, now that it's ready
 sed -i -e 's/^enabled=.*$/enabled=true/' /etc/gridinit.d/OPENIO-oioswift-0.conf
 
-# Activate logs
-/usr/sbin/rsyslogd
 
 echo "
      .oo.   .ooo.       OIO Conscience:   ${IPADDR}:6000
