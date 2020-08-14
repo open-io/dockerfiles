@@ -36,7 +36,7 @@ pipeline {
         axes {
           axis {
             name 'DOCKER_IMAGE_DIR'
-            values 'openio-sds/20.04', 'openio-sds/19.10', 'openio-sds/19.04','openio-sds/18.10' //,'openio-sds/18.04' // 1804 disabled because packages are missing
+            values 'openio-sds/20.04', 'openio-sds/19.10', 'openio-sds/19.04','openio-sds/18.10', 'oio-devbox'
           }
         }
         agent {
