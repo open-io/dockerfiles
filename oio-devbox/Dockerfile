@@ -40,8 +40,11 @@ RUN curl -sSL https://releases.hashicorp.com/terraform/0.13.0/terraform_0.13.0_l
     && terraform -v
 
 ## Install tools with python's pip (both OpenIO distribution's pip file + dev tools)
-ENV VENV_PATH="/venv"
-COPY ./mitogen-0.2.9 /tmp/mitogen-0.2.9
+ENV VENV_PATH="/venv" \
+    MITOGEN_VERSION=0.2.9
+RUN curl -sSL "https://networkgenomics.com/try/mitogen-${MITOGEN_VERSION}.tar.gz" -o "/tmp/mitogen-${MITOGEN_VERSION}.tar.gz" \
+    && tar -xzf "/tmp/mitogen-${MITOGEN_VERSION}.tar.gz" -C /tmp \
+    && rm -rf "/tmp/mitogen-${MITOGEN_VERSION}.tar.gz"
 RUN virtualenv --python=python3 --prompt="(oio-devbox) " "${VENV_PATH}" \
     && source "${VENV_PATH}"/bin/activate \
     && python3 -m pip install 'molecule==3.0.*' docker pytest testinfra yamllint \
