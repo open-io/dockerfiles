@@ -1,0 +1,5 @@
+molecule==3.0.*
+docker
+pytest
+testinfra
+yamllint

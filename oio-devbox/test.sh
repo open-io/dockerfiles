@@ -11,4 +11,4 @@ test -n "${DOCKER_IMAGE_NAME}" || {
 
 docker image ls | grep "${DOCKER_IMAGE_NAME}"
 
-docker run --rm --volume=/var/run/docker.sock:/var/run/docker.sock --volume="${CURRENT_DIR}/tests/:/tests" "${DOCKER_IMAGE_NAME}" bash /tests/run.sh
+docker run --rm --volume=/var/run/docker.sock:/var/run/docker.sock --volume="${CURRENT_DIR}:/repo" "${DOCKER_IMAGE_NAME}" bash /repo/checks.sh

@@ -63,14 +63,8 @@ COPY ./entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["bash","/entrypoint.sh"]
 
 ## Default venv (with python3)
+COPY ./dev.pip "${VENV_PATH}/dev.pip"
 RUN virtualenv --python=python3 --prompt="(oio-devbox) " "${VENV_PATH}" \
     && source "${VENV_PATH}"/bin/activate \
-    && python3 -m pip install 'molecule==3.0.*' docker pytest testinfra yamllint \
+    && python3 -m pip install --requirement="${VENV_PATH}/dev.pip" \
     && chmod -R 775 "${VENV_PATH}"
-
-## Legacy venv (with python2)
-RUN apk add --no-cache python2 python2-dev \
-    && virtualenv --python=python2 --prompt="(oio-devbox-py2) " "${VENV_PATH}-py2" \
-    && source "${VENV_PATH}-py2"/bin/activate \
-    && python2 -m pip install 'molecule==3.0.*' docker pytest testinfra yamllint \
-    && chmod -R 775 "${VENV_PATH}-py2"
