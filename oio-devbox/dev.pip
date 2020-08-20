@@ -3,3 +3,4 @@ docker
 pytest
 testinfra
 yamllint
+python-openstackclient
