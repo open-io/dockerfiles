@@ -13,6 +13,7 @@ RUN apk add --no-cache \
         make \
         openssh-client \
         openssl \
+        python2 \
         py3-virtualenv \
         py3-pip \
         rsync \
@@ -25,12 +26,16 @@ RUN apk add --no-cache \
 # Install dev packages used during pip install phases (mostly headers and python dev tools)
 RUN apk --no-cache add --virtual .build-deps \
         python3-dev \
+        python2-dev \
         libffi-dev \
         openssl-dev \
         build-base
 
 ## Install the Github "pr" CLI to automate github releases
 RUN apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing hub
+
+## Yq will be available as stable in alpine 3.13
+RUN apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community yq
 
 ## Install Terraform from fixed binary distributions
 ENV TERRAFORM_VERSION=0.13.0 \

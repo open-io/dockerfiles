@@ -2,7 +2,7 @@
 
 set -eu -o pipefail
 
-for CLI in ansible ansible-vault awk bash curl docker git grep make molecule openstack packer python3 sed terraform virtualenv
+for CLI in ansible ansible-vault awk bash curl docker git grep make molecule openstack packer python2 python3 sed terraform virtualenv yq
 do
   command -v "${CLI}" >/dev/null || { >&2 echo "Command line '${CLI}' not found" && exit 1;}
 done
