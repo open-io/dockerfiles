@@ -38,8 +38,8 @@ RUN apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/te
 RUN apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community yq
 
 ## Install Terraform from fixed binary distributions
-ENV TERRAFORM_VERSION=0.13.0 \
-    TERRAFORM_ZIP_SHA256SUM=9ed437560faf084c18716e289ea712c784a514bdd7f2796549c735d439dbe378
+ENV TERRAFORM_VERSION=0.13.1 \
+    TERRAFORM_ZIP_SHA256SUM=f7b842d1c06045b496fd00db83520e83a974a294b070dbaf88cb1013c5f02caf
 RUN curl -sSL "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \
         -o /tmp/terraform.zip \
     && sha256sum /tmp/terraform.zip | grep $TERRAFORM_ZIP_SHA256SUM -q \
@@ -63,13 +63,13 @@ RUN curl -sSL "https://networkgenomics.com/try/mitogen-${MITOGEN_VERSION}.tar.gz
     && tar -xzf "/tmp/mitogen-${MITOGEN_VERSION}.tar.gz" -C /tmp \
     && rm -rf "/tmp/mitogen-${MITOGEN_VERSION}.tar.gz"
 
-ENV VENV_PATH="/venv"
-COPY ./entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["bash","/entrypoint.sh"]
-
 ## Default venv (with python3)
+ENV VENV_PATH="/venv"
 COPY ./dev.pip "${VENV_PATH}/dev.pip"
 RUN virtualenv --python=python3 --prompt="(oio-devbox) " "${VENV_PATH}" \
     && source "${VENV_PATH}"/bin/activate \
     && python3 -m pip install --requirement="${VENV_PATH}/dev.pip" \
     && chmod -R 775 "${VENV_PATH}"
+
+COPY ./entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["bash","/entrypoint.sh"]

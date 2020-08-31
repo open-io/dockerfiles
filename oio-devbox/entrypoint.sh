@@ -5,9 +5,9 @@ set -eu -o pipefail
 ##### Determine User and Groups at runtime
 USER_UID=${USER_UID:-1000}
 USER_GID=${USER_GID:-1000}
-USER_NAME="${USER_NAME:-jenkins}"
-USER_HOME="${USER_HOME:-/home/jenkins}"
-USER_GROUPNAME="${USER_GROUPNAME:-jenkins}"
+USER_NAME="${USER_NAME:-openio}"
+USER_HOME="${USER_HOME:-/home/${USER_NAME}}"
+USER_GROUPNAME="${USER_GROUPNAME:-${USER_NAME}}"
 ### User: we want UID to be the same as on the host, to avoid writing files as root on the shared folders
 # Create default group for the user (same name, same ID by default)
 addgroup -g "${USER_GID}" "${USER_GROUPNAME}"
@@ -20,11 +20,14 @@ chown -R "${USER_UID}:${USER_GID}" "${USER_HOME}/.ansible"
 
 # Docker Group: we also want the default user to be part of the group owning /var/run/docker.sock
 DOCKER_SOCKET=/var/run/docker.sock
-chmod g+w "${DOCKER_SOCKET}" # Ensure that the group owning the socket can write to it
-DOCKER_GROUP="$(stat -c %G "${DOCKER_SOCKET}")"
-DOCKER_GROUP_GID="$(stat -c %g "${DOCKER_SOCKET}")"
-grep -q "${DOCKER_GROUP}" /etc/passwd || addgroup -g "${DOCKER_GROUP_GID}" "${DOCKER_GROUP}"
-addgroup "${USER_NAME}" "${DOCKER_GROUP}"
+if test -f "${DOCKER_SOCKET}"
+then
+  chmod g+w "${DOCKER_SOCKET}" # Ensure that the group owning the socket can write to it
+  DOCKER_GROUP="$(stat -c %G "${DOCKER_SOCKET}")"
+  DOCKER_GROUP_GID="$(stat -c %g "${DOCKER_SOCKET}")"
+  grep -q "${DOCKER_GROUP}" /etc/passwd || addgroup -g "${DOCKER_GROUP_GID}" "${DOCKER_GROUP}"
+  addgroup "${USER_NAME}" "${DOCKER_GROUP}"
+fi
 
 ####### Determine the command to run
 CMD_TO_RUN=("$@")
